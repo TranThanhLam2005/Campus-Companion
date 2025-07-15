@@ -1,4 +1,4 @@
-package com.example.campuscompanion.generalUI
+package com.example.campuscompanion.generalUi
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,15 +22,20 @@ fun ButtonUI(
     textStyle: TextStyle = MaterialTheme.typography.titleMedium,
     fontSize: Int = 14,
     shape: Int = 10,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    enabled: Boolean = true
 ) {
     Button(onClick = onClick,
         modifier = modifier,
         colors = ButtonDefaults.buttonColors(
         containerColor = backgroundColor,
-        contentColor = textColor),
+        contentColor = textColor,
+        disabledContainerColor = Color(0xFFB4A6A4), // Customize this
+        disabledContentColor = Color.White),
         contentPadding = PaddingValues(horizontal = 50.dp, vertical = 10.dp),
         shape = RoundedCornerShape(shape.dp),
+        enabled = enabled,
+
     ) {
         Text(
             text = text,

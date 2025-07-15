@@ -26,8 +26,9 @@ import com.example.campuscompanion.feature.auth.signin.SignInScreen
 import com.example.campuscompanion.onboard.OnboardingScreen
 import com.example.campuscompanion.onboard.OnboardingUtils
 import com.example.campuscompanion.ui.theme.CampusCompanionTheme
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val viewModel by viewModels<MainViewModel>()

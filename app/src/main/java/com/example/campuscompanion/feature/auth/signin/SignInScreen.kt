@@ -1,5 +1,6 @@
 package com.example.campuscompanion.feature.auth.signin
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -39,13 +40,21 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.campuscompanion.generalUI.ButtonUI
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.campuscompanion.generalUi.ButtonUI
 
 @Composable
 fun SignInScreen(navController: NavController, modifier: Modifier = Modifier) {
+
+    val viewModel: SignInViewModel = hiltViewModel()
+    val uiState = viewModel.state.collectAsState()
+
     var email by remember {
         mutableStateOf("")
     }
@@ -55,8 +64,24 @@ fun SignInScreen(navController: NavController, modifier: Modifier = Modifier) {
     var passwordVisible by remember {
         mutableStateOf(false)
     }
+    val context = LocalContext.current
+    LaunchedEffect(key1 = uiState.value){
+        when(uiState.value) {
+            is SignInState.Success -> {
+                navController.navigate("main")
+            }
+            is SignInState.Error -> {
+                // Show error
+                Toast.makeText(context, "Incorrect email or password", Toast.LENGTH_SHORT).show()
+            }
+            else -> {}
+        }
+    }
+
     Box(
-        modifier = Modifier.fillMaxSize().background(Color.Black)
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
     ){
         Column(
             modifier = Modifier
@@ -148,12 +173,18 @@ fun SignInScreen(navController: NavController, modifier: Modifier = Modifier) {
                 },
             )
             Spacer(modifier = Modifier.height(18.dp))
-
-            ButtonUI(
-                modifier = Modifier.fillMaxWidth(),
-                text = "Sign In"
-            ){
-
+            if(uiState.value == SignInState.Loading){
+                CircularProgressIndicator()
+            }else {
+                ButtonUI(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = "Sign In",
+                    fontSize = 16,
+                    onClick = {
+                        viewModel.signIn(email, password)
+                    },
+                    enabled = email.isNotEmpty() && password.isNotEmpty() && (uiState.value == SignInState.Nothing || uiState.value == SignInState.Error)
+                )
             }
         }
     }
