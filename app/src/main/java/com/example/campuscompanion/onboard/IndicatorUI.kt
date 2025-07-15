@@ -20,7 +20,8 @@ import androidx.compose.ui.unit.dp
 fun IndicatorUI(
     pageSize: Int, currentPage: Int,
     selectedColor: Color = MaterialTheme.colorScheme.secondary,
-    unselectedColor: Color = MaterialTheme.colorScheme.secondaryContainer
+    unselectedColor: Color = MaterialTheme.colorScheme.secondaryContainer,
+    modifier: Modifier = Modifier
 ) {
     Row(
         horizontalArrangement = Arrangement.SpaceBetween
