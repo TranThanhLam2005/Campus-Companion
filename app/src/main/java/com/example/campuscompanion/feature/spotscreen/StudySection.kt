@@ -228,7 +228,6 @@ fun RoomCardGrid(
         modifier = modifier,
         columns = GridCells.Fixed(1),
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
     ){
         items(roomList){ room ->
             RoomCard(room)

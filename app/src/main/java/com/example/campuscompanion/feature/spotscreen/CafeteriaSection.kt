@@ -144,7 +144,6 @@ fun CatinCardGrid(
         modifier = modifier,
         columns = GridCells.Fixed(1),
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
     ){
         items(catinList){ catin ->
             CatinCard(catin)
