@@ -9,5 +9,5 @@ sealed class Screen (val route: String){
     object SpotScreen: Screen(route = "spot_screen")
     object ProfileScreen: Screen(route = "profile_screen")
 
-
+    object ClubScreenDetail: Screen(route = "club_screen_detail")
 }
