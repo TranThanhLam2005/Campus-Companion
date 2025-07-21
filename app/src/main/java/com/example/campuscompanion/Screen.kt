@@ -10,4 +10,14 @@ sealed class Screen (val route: String){
     object ProfileScreen: Screen(route = "profile_screen")
 
     object ClubScreenDetail: Screen(route = "club_screen_detail")
+
+    object CafeteriaScreen: Screen(route = "cafeteria_screen")
+    object CafeteriaScreenDetail: Screen(route = "cafeteria_screen_detail")
+
+    object StudyScreen: Screen(route = "study_screen")
+    object StudyScreenDetail: Screen(route = "study_screen_detail")
+
+    object NearbyMapScreen: Screen(route = "nearby_map_screen")
+    object NearbyMapScreenDetail: Screen(route = "nearby_map_screen_detail")
+
 }

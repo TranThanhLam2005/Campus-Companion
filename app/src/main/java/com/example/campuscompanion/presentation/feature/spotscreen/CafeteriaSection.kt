@@ -2,11 +2,13 @@ package com.example.campuscompanion.presentation.feature.spotscreen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -24,9 +26,13 @@ import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.PriceCheck
 import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,39 +43,54 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.campuscompanion.R
+import com.example.campuscompanion.Screen
+import com.example.campuscompanion.domain.model.Cafeteria
 
 
-data class Catin(
-    val name: String,
-    val description: String,
-    val reviewStart: Int,
-    val price: Int,
-    val painter: Int
-)
 @Composable
-fun CafeteriaSection(modifier: Modifier = Modifier) {
-    val list = listOf(
-        Catin("Global Catin", "Rice - Chicken - Noddle", 4, 10000, R.drawable.catin),
-        Catin("Global Catin", "Rice - Chicken - Noddle", 4, 10000, R.drawable.catin),
-        Catin("Global Catin", "Rice - Chicken - Noddle", 4, 10000, R.drawable.catin),
-        Catin("Global Catin", "Rice - Chicken - Noddle", 4, 10000, R.drawable.catin),
-    )
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(20.dp))
-            .background(Color(0xFFF2F4F7)),
-    ){
-        CatinCardGrid(
-             catinList = list,
-            modifier = Modifier.padding(10.dp)
-        )
+fun CafeteriaSection(modifier: Modifier = Modifier, navController: NavController) {
+
+    val viewModel: CafeteriaViewModel = hiltViewModel()
+    val cafeteriasState by viewModel.cafeterias.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadCafeterias()
+    }
+
+    if(isLoading){
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = Color.White)
+        }
+    }else {
+        val cafeterias = cafeteriasState
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(20.dp))
+                .background(Color(0xFFF2F4F7))
+                .padding(bottom = 80.dp),
+        ){
+            CafeteriaCardGrid(
+                cafeteriaList = cafeterias,
+                navController = navController,
+                modifier = Modifier.padding(10.dp)
+            )
+        }
     }
 }
 
 @Composable
-fun CatinCard(
-    catin: Catin
+fun CafeteriaCard(
+    cafeteria: Cafeteria,
+    navController: NavController,
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -79,27 +100,33 @@ fun CatinCard(
             .padding(8.dp)
     ){
         Image(
-            painter = painterResource(id = catin.painter),
-            contentDescription =  catin.description,
+            painter = painterResource(id = R.drawable.catin),
+            contentDescription =  cafeteria.description,
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(
                     RoundedCornerShape(20.dp)
                 )
+                .clickable(){
+                    navController.navigate(Screen.CafeteriaScreenDetail.route + "/${cafeteria.id}")
+                }
         )
         Spacer(modifier = Modifier.height(8.dp))
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ){
             Text(
-                catin.name,
+                cafeteria.name,
                 color = Color.Black,
                 fontSize = 22.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable(){
+                    navController.navigate(Screen.CafeteriaScreenDetail.route + "/${cafeteria.id}")
+                }
             )
             Text(
-                catin.description,
+                cafeteria.title,
                 color = Color.Black,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Light
@@ -114,7 +141,7 @@ fun CatinCard(
                 ){
                     Icon(imageVector = Icons.Outlined.Star, contentDescription = null, tint = Color.Black)
                     Text(
-                        "${catin.reviewStart}/5",
+                        "${cafeteria.star}/5",
                         color = Color.Gray,
                         fontSize = 16.sp,
                     )
@@ -125,7 +152,7 @@ fun CatinCard(
                 ){
                     Icon(imageVector = Icons.Filled.Payment, contentDescription = null, tint = Color.Black)
                     Text(
-                        "${catin.price} VND",
+                        "${cafeteria.price} VND",
                         color = Color.Gray,
                         fontSize = 16.sp,
                     )
@@ -136,24 +163,19 @@ fun CatinCard(
 }
 
 @Composable
-fun CatinCardGrid(
+fun CafeteriaCardGrid(
     modifier: Modifier,
-    catinList: List<Catin>
+    cafeteriaList: List<Cafeteria>,
+    navController: NavController
 ) {
     LazyVerticalGrid(
         modifier = modifier,
         columns = GridCells.Fixed(1),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ){
-        items(catinList){ catin ->
-            CatinCard(catin)
+        items(cafeteriaList){ cafeteria ->
+            CafeteriaCard(cafeteria, navController)
         }
     }
 }
 
-
-@Preview(showBackground = true)
-@Composable
-fun preview (){
-    CafeteriaSection()
-}

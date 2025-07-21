@@ -1,7 +1,9 @@
 package com.example.campuscompanion.di
 
+import com.example.campuscompanion.data.repository.CafeteriaRepositoryImpl
 import com.example.campuscompanion.data.repository.ClubRepositoryImpl
 import com.example.campuscompanion.data.repository.UserRepositoryImpl
+import com.example.campuscompanion.domain.repository.CafeteriaRepository
 import com.example.campuscompanion.domain.repository.ClubRepository
 import com.example.campuscompanion.domain.repository.UserRepository
 import dagger.Binds
@@ -25,5 +27,11 @@ abstract class RepositoryModule {
     abstract fun bindClubRepository(
         impl: ClubRepositoryImpl
     ): ClubRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCafeteriaRepository(
+        impl: CafeteriaRepositoryImpl
+    ): CafeteriaRepository
 
 }

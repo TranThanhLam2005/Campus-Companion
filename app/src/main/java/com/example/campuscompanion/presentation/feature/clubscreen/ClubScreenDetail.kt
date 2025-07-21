@@ -86,7 +86,7 @@ fun ClubScreenDetail(modifier: Modifier = Modifier, clubId: String, navControlle
                 .padding(horizontal = 20.dp)
         ){
             Row(
-                modifier = Modifier.padding(top = 45.dp),
+                modifier = Modifier.padding(top = 60.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ){

@@ -88,7 +88,7 @@ fun SpotScreen(modifier: Modifier = Modifier, navController: NavController) {
                             modifier = Modifier.padding(vertical = 12.dp)
                         )
                     },
-                    shape = RoundedCornerShape(50), // 👈 pill-shaped corners
+                    shape = RoundedCornerShape(50), 
                     colors = AssistChipDefaults.assistChipColors(
                         containerColor = if (selected == category) Color(0xFF902A1D) else Color.White,
                         labelColor = if (selected == category) Color.White else Color.Black
@@ -100,7 +100,7 @@ fun SpotScreen(modifier: Modifier = Modifier, navController: NavController) {
         // Dynamic content
         when (selected) {
             SpotCategory.STUDY -> StudySection()
-            SpotCategory.CAFE -> CafeteriaSection()
+            SpotCategory.CAFE -> CafeteriaSection(navController = navController)
             SpotCategory.MAP -> NearbyMapSection()
         }
     }

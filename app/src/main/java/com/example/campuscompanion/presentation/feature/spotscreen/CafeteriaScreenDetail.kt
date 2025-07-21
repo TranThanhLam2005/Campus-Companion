@@ -2,6 +2,7 @@ package com.example.campuscompanion.presentation.feature.spotscreen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,10 +26,14 @@ import androidx.compose.material.icons.outlined.AddCircle
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -41,6 +46,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.campuscompanion.R
 
 data class Food(
@@ -51,7 +58,10 @@ data class Food(
 
 
 @Composable
-fun CafeteriaScreenDetail() {
+fun CafeteriaScreenDetail(cafeteriaId: String, navController: NavController) {
+    val viewModel: CafeteriaDetailViewModel = hiltViewModel()
+    val cafeteria by viewModel.cafeteria.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
     val selected = remember { mutableStateOf("Burger") }
     val foodList = listOf(
         Food("Burger Ferguson", "40.000 VND", R.drawable.burger),
@@ -59,98 +69,116 @@ fun CafeteriaScreenDetail() {
         Food("Burger Ferguson", "40.000 VND", R.drawable.burger),
         Food("Burger Ferguson", "40.000 VND", R.drawable.burger)
     )
+    LaunchedEffect(Unit) {
+        viewModel.loadCafeteria(cafeteriaId)
+    }
 
-    Column( modifier = Modifier
+    if(isLoading){
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = Color.White)
+        }
+    }else{
+        val cafeteria = cafeteria
+        Column( modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
             .padding(horizontal = 20.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(top = 30.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ){
-            Icon(
-                imageVector = Icons.Filled.ArrowBack,
-                contentDescription = "Back",
-                tint = Color.Black
-            )
-            Text(
-                text = "Club View",
-                color = Color.Black,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-            )
-        }
-        Image(
-            painter = painterResource(id = R.drawable.catin), // Replace with your header image
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .padding(top = 20.dp),
-            contentScale = ContentScale.Crop
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(
-                text = "Global Catin",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "Global catin provide asian food that appropriate for all student from different culture from rice to sandwich",
-                fontSize = 18.sp,
-                color = Color.Gray
-            )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Outlined.Star, contentDescription = null, tint = Color.Black)
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("4.7/5", fontSize = 16.sp)
-            }
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Row(
-            horizontalArrangement = Arrangement.SpaceAround,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            listOf("Sandwich", "Burger", "Hotdog", "Pizza").forEach { category ->
-                AssistChip(
-                    onClick = { selected.value = category },
-                    label = {
-                        Text(
-                            text = category,
-                            color = if(selected.value == category) Color.White else Color.Black,
-                            fontSize = 16.sp,
-                            modifier = Modifier.padding(vertical = 12.dp)
-                        )
-                    },
-                    shape = RoundedCornerShape(50),
-                    colors = AssistChipDefaults.assistChipColors(
-                        containerColor = if (selected.value == category) Color(0xFF902A1D) else Color.White ,
-                        labelColor = if (selected.value == category) Color.White else Color.Black
-                    )
+            Row(
+                modifier = Modifier.padding(top = 60.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ){
+                Icon(
+                    imageVector = Icons.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = Color.Black,
+                    modifier = Modifier.clickable{
+                        navController.popBackStack()
+                    }
+                )
+                Text(
+                    text = "Club View",
+                    color = Color.Black,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
                 )
             }
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(20.dp))
-                .background(Color(0xFFF2F4F7)),
-        ){
-            FoodCardGrid(
-                modifier = Modifier.padding(10.dp),
-                foodList = foodList
+            Image(
+                painter = painterResource(id = R.drawable.catin), // Replace with your header image
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .padding(top = 20.dp),
+                contentScale = ContentScale.Crop
             )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = cafeteria?.name ?: "",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = cafeteria?.description ?: "",
+                    fontSize = 18.sp,
+                    color = Color.Gray
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Outlined.Star, contentDescription = null, tint = Color.Black)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("${cafeteria?.star?: ""}/5", fontSize = 16.sp)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Row(
+                horizontalArrangement = Arrangement.SpaceAround,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                listOf("Sandwich", "Burger", "Hotdog", "Pizza").forEach { category ->
+                    AssistChip(
+                        onClick = { selected.value = category },
+                        label = {
+                            Text(
+                                text = category,
+                                color = if(selected.value == category) Color.White else Color.Black,
+                                fontSize = 16.sp,
+                                modifier = Modifier.padding(vertical = 12.dp)
+                            )
+                        },
+                        shape = RoundedCornerShape(50),
+                        colors = AssistChipDefaults.assistChipColors(
+                            containerColor = if (selected.value == category) Color(0xFF902A1D) else Color.White ,
+                            labelColor = if (selected.value == category) Color.White else Color.Black
+                        )
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color(0xFFF2F4F7)),
+            ){
+                FoodCardGrid(
+                    modifier = Modifier.padding(10.dp),
+                    foodList = foodList
+                )
+            }
         }
     }
 }
@@ -218,9 +246,3 @@ fun FoodCardGrid(
     }
 }
 
-
-@Preview
-@Composable
-fun CafeteriaScreenDetailPreview() {
-    CafeteriaScreenDetail()
-}
