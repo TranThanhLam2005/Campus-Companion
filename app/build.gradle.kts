@@ -69,11 +69,22 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-database")
     implementation("com.google.dagger:hilt-android:2.56.2")
     ksp("com.google.dagger:hilt-android-compiler:2.56.2")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
-    implementation("com.cloudinary:cloudinary-android:3.1.0")
+    implementation("com.cloudinary:cloudinary-android:3.0.2")
+    implementation("androidx.activity:activity-compose:1.10.1")
+    implementation("io.coil-kt:coil-compose:2.5.0")
 
+    val camerax_version = "1.5.0-beta02"
+    implementation("androidx.camera:camera-core:${camerax_version}")
+    implementation("androidx.camera:camera-camera2:${camerax_version}")
+    implementation("androidx.camera:camera-lifecycle:${camerax_version}")
+    implementation("androidx.camera:camera-video:${camerax_version}")
+    implementation("androidx.camera:camera-view:${camerax_version}")
+    implementation("androidx.camera:camera-extensions:${camerax_version}")
+    implementation("com.google.accompanist:accompanist-permissions:0.33.2-alpha")
 }

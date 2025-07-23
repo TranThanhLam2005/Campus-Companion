@@ -2,11 +2,13 @@ package com.example.campuscompanion.presentation.feature.spotscreen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -21,9 +23,16 @@ import androidx.compose.material.icons.outlined.Book
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.House
 import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,56 +43,75 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.campuscompanion.R
+import com.example.campuscompanion.domain.model.Room
+import com.google.firebase.Timestamp
+import java.text.SimpleDateFormat
+import java.util.Locale
 
-data class Room(
-    val number: String,
-    val location: String,
-    val description: String,
-    val availableTime: String,
-    val painter: Int
-)
 @Composable
 fun StudySection(modifier: Modifier = Modifier) {
-    val room = Room("1.3006", "Building 2, Level 1","Mac lab for IT student with whiteboard","Available until 5.30pm", R.drawable.maclab)
-    val List = listOf(
-        Room("1.3006", "Building 2, Level 1","Mac lab for IT student with whiteboard","Available until 5.30pm", R.drawable.maclab),
-        Room("1.3006", "Building 2, Level 1","Mac lab for IT student with whiteboard","Available until 5.30pm", R.drawable.maclab),
-        Room("1.3006", "Building 2, Level 1","Mac lab for IT student with whiteboard","Available until 5.30pm", R.drawable.maclab),
-        Room("1.3006", "Building 2, Level 1","Mac lab for IT student with whiteboard","Available until 5.30pm", R.drawable.maclab),
-        Room("1.3006", "Building 2, Level 1","Mac lab for IT student with whiteboard","Available until 5.30pm", R.drawable.maclab),
-    )
-    RoomDetail(room)
-    Spacer(modifier = Modifier.height(20.dp))
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = Modifier.fillMaxWidth().padding(10.dp)
-    ){
-        Icon(
-            imageVector = Icons.Outlined.House,
-            contentDescription = null,
-            tint = Color.White,
-            modifier = Modifier.size(32.dp)
-        )
-        Text(
-            "Available Rooms:",
-            color = Color.White,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.SemiBold
-        )
+
+    val viewModel: StudyViewModel = hiltViewModel();
+    val roomsState by viewModel.rooms.collectAsState();
+    val isLoading by viewModel.isLoading.collectAsState();
+    var showRoomDetail by remember { mutableStateOf<Room?>(null) }
+
+    LaunchedEffect(Unit) {
+        viewModel.getRooms()
     }
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(20.dp))
-            .background(Color(0xFFF2F4F7))
-            .padding(bottom = 80.dp)
-        ,
-    ){
-        RoomCardGrid(
-            roomList = List,
-            modifier = Modifier.padding(10.dp)
-        )
+    LaunchedEffect(roomsState) {
+        if (roomsState.isNotEmpty()) {
+            showRoomDetail = roomsState.first()
+        }
+    }
+    if(isLoading){
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = Color.White)
+        }
+    }else{
+        val List = roomsState
+        showRoomDetail?.let {
+            RoomDetail(it)
+        }
+        Spacer(modifier = Modifier.height(20.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.fillMaxWidth().padding(10.dp)
+        ){
+            Icon(
+                imageVector = Icons.Outlined.House,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(32.dp)
+            )
+            Text(
+                "Available Rooms:",
+                color = Color.White,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(20.dp))
+                .background(Color(0xFFF2F4F7))
+                .padding(bottom = 80.dp)
+            ,
+        ){
+            RoomCardGrid(
+                roomList = List,
+                modifier = Modifier.padding(10.dp),
+                onRoomClick = {showRoomDetail = it}
+            )
+        }
     }
 }
 
@@ -94,7 +122,7 @@ fun RoomDetail(
 ) {
     Box(){
         Image(
-            painter = painterResource(id = room.painter),
+            painter = painterResource(id = R.drawable.maclab),
             contentDescription =  room.description,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -123,7 +151,7 @@ fun RoomDetail(
                     .align(Alignment.BottomStart)
             ){
                 Text(
-                    room.number,
+                    room.name,
                     color = Color.White,
                     fontSize = 26.sp,
                     fontWeight = FontWeight.Bold
@@ -148,7 +176,7 @@ fun RoomDetail(
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(
-                        room.availableTime,
+                        formatTimestamp(room.availableTime),
                         color = Color.White,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Light
@@ -161,7 +189,8 @@ fun RoomDetail(
 
 @Composable
 fun RoomCard(
-    room: Room
+    room: Room,
+    onClick: (Room) -> Unit
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -169,9 +198,12 @@ fun RoomCard(
             .clip(RoundedCornerShape(20.dp))
             .background(Color.White)
             .padding(8.dp)
+            .clickable{
+                onClick(room)
+            }
     ){
         Image(
-            painter = painterResource(id = room.painter),
+            painter = painterResource(id = R.drawable.maclab),
             contentDescription =  room.description,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -190,7 +222,7 @@ fun RoomCard(
             ){
                 Icon(imageVector = Icons.Outlined.Book, contentDescription = null, tint = Color.Gray)
                 Text(
-                    room.number,
+                    room.name,
                     color = Color.Gray,
                     fontSize = 18.sp,
                 )
@@ -212,7 +244,7 @@ fun RoomCard(
             ){
                 Icon(imageVector = Icons.Outlined.Description, contentDescription = null, tint = Color.Gray)
                 Text(
-                    room.number,
+                    room.name,
                     color = Color.Gray,
                     fontSize = 18.sp,
                 )
@@ -224,7 +256,8 @@ fun RoomCard(
 @Composable
 fun RoomCardGrid(
     modifier: Modifier,
-    roomList: List<Room>
+    roomList: List<Room>,
+    onRoomClick: (Room) -> Unit
 ) {
     LazyVerticalGrid(
         modifier = modifier,
@@ -232,7 +265,14 @@ fun RoomCardGrid(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ){
         items(roomList){ room ->
-            RoomCard(room)
+            RoomCard(room, {onRoomClick(room)})
         }
     }
+}
+
+fun formatTimestamp(timestamp: Timestamp?): String {
+    return timestamp?.toDate()?.let {
+        val sdf = SimpleDateFormat("MMM dd, yyyy - HH:mm", Locale.getDefault())
+        sdf.format(it)
+    } ?: "No time"
 }

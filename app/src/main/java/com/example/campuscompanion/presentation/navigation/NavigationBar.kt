@@ -1,5 +1,6 @@
 package com.example.campuscompanion.presentation.navigation
 
+import LocketScreen
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -35,7 +36,6 @@ import com.example.campuscompanion.Screen
 import com.example.campuscompanion.presentation.feature.clubscreen.ClubScreen
 import com.example.campuscompanion.presentation.feature.clubscreen.ClubScreenDetail
 import com.example.campuscompanion.presentation.feature.home.HomeScreen
-import com.example.campuscompanion.presentation.feature.locketscreen.LocketScreen
 import com.example.campuscompanion.presentation.feature.profilescreen.ProfileScreen
 import com.example.campuscompanion.presentation.feature.spotscreen.CafeteriaScreenDetail
 import com.example.campuscompanion.presentation.feature.spotscreen.SpotScreen
