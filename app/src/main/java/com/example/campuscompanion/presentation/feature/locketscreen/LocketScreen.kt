@@ -172,7 +172,7 @@ fun LocketScreen(navController: NavController) {
                                 uploadProgress = 0f
 
                                 MediaManager.get().upload(uri)
-                                    .unsigned("upload") // Replace with your preset
+                                    .unsigned("upload")
                                     .callback(object : UploadCallback {
                                         override fun onStart(requestId: String?) {
                                             Log.d("Upload", "Started")

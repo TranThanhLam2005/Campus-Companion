@@ -6,5 +6,6 @@ data class Club(
     val type: String = "",
     val location: String = "",
     val description: String = "",
-    val socialLink: String = ""
+    val socialLink: String = "",
+    val events: List<Event> = emptyList(),
 )
