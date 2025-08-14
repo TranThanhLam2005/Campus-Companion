@@ -1,15 +1,14 @@
 package com.example.campuscompanion.presentation.feature.spotscreen
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,54 +22,124 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.outlined.AddCircle
+import androidx.compose.material.icons.outlined.ArrowRight
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Remove
+import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.SegmentedButtonDefaults.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.campuscompanion.R
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import com.example.campuscompanion.domain.model.Food
+import com.example.campuscompanion.generalUi.ButtonUI
 
-data class Food(
-    val name: String,
-    val price: String,
-    val painter: Int
+
+data class FoodOrder(
+    val food: Food = Food(),
+    var quantity: Int
 )
-
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CafeteriaScreenDetail(cafeteriaId: String, navController: NavController) {
+    // collect state from view model
     val viewModel: CafeteriaDetailViewModel = hiltViewModel()
-    val cafeteria by viewModel.cafeteria.collectAsState()
+    val cafeteriaState by viewModel.cafeteria.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    val selected = remember { mutableStateOf("Burger") }
-    val foodList = listOf(
-        Food("Burger Ferguson", "40.000 VND", R.drawable.burger),
-        Food("Burger Ferguson", "40.000 VND", R.drawable.burger),
-        Food("Burger Ferguson", "40.000 VND", R.drawable.burger),
-        Food("Burger Ferguson", "40.000 VND", R.drawable.burger)
+
+    // Selected type of food
+    var selected by remember { mutableStateOf<String?>(null) }
+
+    // Show cart for preview choose food
+    var showCart by remember { mutableStateOf(false) }
+
+    // Order content information
+    var name by remember { mutableStateOf("") }
+    var takenote by remember { mutableStateOf("") }
+    var expanded by remember { mutableStateOf(false) }
+    var showConfirmation by remember { mutableStateOf(false) }
+
+    // Cart items and total
+    val cartItems = remember { mutableStateListOf<FoodOrder>() }
+    val total by remember {
+        derivedStateOf {
+            cartItems.sumOf { it.food.price * it.quantity }
+        }
+    }
+
+    // helper function to add to cart
+    fun addToCart(food: Food) {
+        val index = cartItems.indexOfFirst { it.food.id == food.id }
+        if(index != -1){
+            val current = cartItems[index]
+            cartItems[index] = current.copy(quantity = current.quantity + 1)
+        }else{
+            cartItems.add(FoodOrder(food, 1))
+        }
+    }
+
+    // helper function to update quantity
+    fun updateQuantity(foodId: String, change: Int) {
+        val index = cartItems.indexOfFirst { it.food.id == foodId }
+        if (index != -1) {
+            val current = cartItems[index]
+            val newQty = current.quantity + change
+            if (newQty <= 0) {
+                cartItems.removeAt(index)
+            } else {
+                cartItems[index] = current.copy(quantity = newQty)
+            }
+        }
+    }
+
+    // Arrow rotation
+    val rotationAngle by animateFloatAsState(
+        targetValue = if (expanded) 90f else 0f, // 90 degrees → down
+        label = "arrowRotation"
     )
+
     LaunchedEffect(Unit) {
         viewModel.loadCafeteria(cafeteriaId)
+
+    }
+    LaunchedEffect(cafeteriaState) {
+        cafeteriaState?.foodTypeList?.firstOrNull()?.name?.let { firstType ->
+            selected = firstType
+        }
     }
 
     if(isLoading){
@@ -83,41 +152,94 @@ fun CafeteriaScreenDetail(cafeteriaId: String, navController: NavController) {
             CircularProgressIndicator(color = Color.White)
         }
     }else{
-        val cafeteria = cafeteria
+        val cafeteria = cafeteriaState
         Column( modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .padding(horizontal = 20.dp)
+            .padding(start = 20.dp, end = 20.dp, bottom = 110.dp, top = 60.dp)
         ) {
             Row(
-                modifier = Modifier.padding(top = 60.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                modifier = Modifier.fillMaxWidth()
             ){
-                Icon(
-                    imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = Color.Black,
-                    modifier = Modifier.clickable{
-                        navController.popBackStack()
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ){
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color.Black,
+                        modifier = Modifier.clickable{
+                            navController.popBackStack()
+                        }
+                    )
+                    Text(
+                        text = "Cafeteria View",
+                        color = Color.Black,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                Box(
+                    contentAlignment = Alignment.TopEnd
+                ) {
+                    IconButton(onClick = { showCart = !showCart }) {
+                        Icon(
+                            imageVector = Icons.Outlined.ShoppingCart,
+                            contentDescription = "Cart",
+                            tint = Color.Black,
+                            modifier = Modifier.size(28.dp)
+                        )
                     }
-                )
-                Text(
-                    text = "Club View",
-                    color = Color.Black,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
+
+                    if (cartItems.isNotEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .size(16.dp)
+                                .background(Color(0xFF902A1D), shape = RoundedCornerShape(50))
+                                .align(Alignment.TopEnd),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = cartItems.sumOf { it.quantity }.toString(),
+                                color = Color.White,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+            val cleanUrl = cafeteria?.imageUrl?.trim()
+            val context = LocalContext.current
+            val painter = rememberAsyncImagePainter(
+                model = ImageRequest.Builder(context)
+                    .data(cleanUrl)
+                    .crossfade(true)
+                    .build()
+            )
+            if(!cleanUrl.isNullOrBlank() ) {
+                Image(
+                    painter = painter,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .padding(top = 20.dp),
                 )
             }
-            Image(
-                painter = painterResource(id = R.drawable.catin), // Replace with your header image
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .padding(top = 20.dp),
-                contentScale = ContentScale.Crop
-            )
+            else{
+                // Placeholder for loading or missing image
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(160.dp)
+                        .background(Color.LightGray)
+                )
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -131,7 +253,7 @@ fun CafeteriaScreenDetail(cafeteriaId: String, navController: NavController) {
                 )
                 Text(
                     text = cafeteria?.description ?: "",
-                    fontSize = 18.sp,
+                    fontSize = 16.sp,
                     color = Color.Gray
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -147,21 +269,21 @@ fun CafeteriaScreenDetail(cafeteriaId: String, navController: NavController) {
                 horizontalArrangement = Arrangement.SpaceAround,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                listOf("Sandwich", "Burger", "Hotdog", "Pizza").forEach { category ->
+                cafeteria?.foodTypeList?.forEach { category ->
                     AssistChip(
-                        onClick = { selected.value = category },
+                        onClick = { selected = category.name },
                         label = {
                             Text(
-                                text = category,
-                                color = if(selected.value == category) Color.White else Color.Black,
+                                text = category.name,
+                                color = if(selected == category.name) Color.White else Color.Black,
                                 fontSize = 16.sp,
                                 modifier = Modifier.padding(vertical = 12.dp)
                             )
                         },
                         shape = RoundedCornerShape(50),
                         colors = AssistChipDefaults.assistChipColors(
-                            containerColor = if (selected.value == category) Color(0xFF902A1D) else Color.White ,
-                            labelColor = if (selected.value == category) Color.White else Color.Black
+                            containerColor = if (selected == category.name) Color(0xFF902A1D) else Color.White ,
+                            labelColor = if (selected == category.name) Color.White else Color.Black
                         )
                     )
                 }
@@ -174,17 +296,231 @@ fun CafeteriaScreenDetail(cafeteriaId: String, navController: NavController) {
                     .clip(RoundedCornerShape(20.dp))
                     .background(Color(0xFFF2F4F7)),
             ){
-                FoodCardGrid(
-                    modifier = Modifier.padding(10.dp),
-                    foodList = foodList
+                if( cafeteria?.foodTypeList?.find { it.name == selected }?.foodList.isNullOrEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No food available in this category",
+                            fontSize = 16.sp,
+                            color = Color.Gray
+                        )
+                    }
+                }else{
+                    FoodCardGrid(
+                        modifier = Modifier.padding(10.dp),
+                        foodList = cafeteria?.foodTypeList?.find { it.name == selected }?.foodList ?: emptyList(),
+                        onAddToCart = { food ->
+                            addToCart(food)
+                        }
+                    )
+                }
+            }
+        }
+    }
+    // Bottom Sheet Content
+    if (showCart) {
+        ModalBottomSheet(
+            onDismissRequest = { showCart = false },
+            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(26.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+                    Text(
+                        text = "Name",
+                        fontWeight = FontWeight.Light,
+                        fontSize = 20.sp
+                    )
+                    Icon(
+                        imageVector = Icons.Outlined.Delete,
+                        contentDescription = "Edit",
+                        tint = Color(0xFF902A1D),
+                        modifier = Modifier.clickable{
+                            cartItems.clear()
+                        }.size(34.dp)
+                    )
+                }
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    placeholder = { Text("Enter full name") },
+                    shape = RoundedCornerShape(50.dp),
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp),
+                    colors = TextFieldDefaults.colors(
+                        focusedIndicatorColor = Color.DarkGray,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
+                        errorIndicatorColor = Color.Transparent
+                    )
+                )
+                OutlinedTextField(
+                    value = takenote,
+                    onValueChange = { takenote = it },
+                    placeholder = { Text("Enter note") },
+                    shape = RoundedCornerShape(50.dp),
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp),
+                    colors = TextFieldDefaults.colors(
+                        focusedIndicatorColor = Color.DarkGray,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
+                        errorIndicatorColor = Color.Transparent
+                    )
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ){
+                        Text(
+                            text = "Total:",
+                            fontWeight = FontWeight.Light,
+                            fontSize = 20.sp
+                        )
+                        Text(
+                            text = "$total VND",
+                            fontSize = 20.sp
+                        )
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier.clickable(){
+                            expanded = !expanded
+                        }
+                    ){
+                        Text(
+                            text = "Breakdown",
+                            fontWeight = FontWeight.Light,
+                            fontSize = 20.sp,
+                            color = Color(0xFF902A1D)
+                        )
+                        Icon(
+                            imageVector = Icons.Outlined.ArrowRight,
+                            contentDescription = "Toggle breakdown",
+                            tint = Color.Black,
+                            modifier = Modifier.rotate(rotationAngle)
+                        )
+                    }
+                }
+                if (expanded) {
+                    Box(modifier = Modifier.height(400.dp)) {
+                        FoodPreviewGrid(
+                            items = cartItems,
+                            onIncrease = { id -> updateQuantity(id, 1) },
+                            onDecrease = { id -> updateQuantity(id, -1) },
+                            onDelete = { id -> updateQuantity(id,
+                               -cartItems.find { it.food.id == id }?.quantity!!
+                            )}
+                        )
+                    }
+                }
+                ButtonUI(
+                    text ="PlaceOrder",
+                    onClick = {
+                        showCart = false
+                        showConfirmation = true
+                        cartItems.clear()
+                    },
+                    enabled = !cartItems.isEmpty() && name.isNotEmpty(),
+                    modifier = Modifier.fillMaxWidth(),
+                    backgroundColor = Color(0xFF902A1D),
+                    textColor = Color.White,
+                    fontSize = 20
                 )
             }
         }
     }
+    if (showConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showConfirmation = false },
+            confirmButton = {
+                TextButton(onClick = { showConfirmation = false }) {
+                    Text(
+                        text = "OK",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF902A1D)
+                    )
+                }
+            },
+            title = {
+                Text(
+                    text = "Order Placed Successfully 🎉",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Color.Black
+                )
+            },
+            text = {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Background circle for icon
+                    Box(
+                        modifier = Modifier
+                            .size(64.dp)
+                            .background(Color(0xFFE8F5E9), shape = RoundedCornerShape(32.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.CheckCircle,
+                            contentDescription = null,
+                            tint = Color(0xFF4CAF50),
+                            modifier = Modifier.size(36.dp)
+                        )
+                    }
+
+                    Text(
+                        text = "Order #12345",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.Black
+                    )
+
+                    Text(
+                        text = "Please keep that number!\nYou’ll receive a notification when your food is ready.",
+                        fontSize = 14.sp,
+                        lineHeight = 20.sp,
+                        color = Color.Gray,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            },
+            shape = RoundedCornerShape(20.dp),
+            containerColor = Color.White
+        )
+    }
 }
 
 @Composable
-fun FoodCard(food: Food) {
+fun FoodCard(food: Food, onAddToCart:(Food) -> Unit) {
+    val cleanUrl = food.imageUrl?.trim()
+    val context = LocalContext.current
+    val painter = rememberAsyncImagePainter(
+        model = ImageRequest.Builder(context)
+            .data(cleanUrl)
+            .crossfade(true)
+            .build()
+    )
     Column(
         modifier = Modifier
             .padding(8.dp)
@@ -192,15 +528,26 @@ fun FoodCard(food: Food) {
             .background(Color.White)
             .fillMaxWidth()
     ) {
-        Image(
-            painter = painterResource(id = food.painter),
-            contentDescription = food.name,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(120.dp)
-                .clip(RoundedCornerShape(16.dp))
-        )
+        if(!cleanUrl.isNullOrBlank()){
+            Image(
+                painter = painter,
+                contentDescription = food.name,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+                    .clip(RoundedCornerShape(16.dp))
+            )
+        }else{
+            // Placeholder for loading or missing image
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .background(Color.LightGray)
+            )
+        }
+
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = food.name,
@@ -216,7 +563,7 @@ fun FoodCard(food: Food) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = food.price,
+                text = "${food.price} VND",
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp
             )
@@ -224,7 +571,11 @@ fun FoodCard(food: Food) {
                 imageVector = Icons.Outlined.AddCircle,
                 contentDescription = "Add",
                 tint = Color.Black,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier
+                    .size(20.dp)
+                    .clickable(){
+                        onAddToCart(food)
+                    }
             )
         }
     }
@@ -232,7 +583,8 @@ fun FoodCard(food: Food) {
 @Composable
 fun FoodCardGrid(
     foodList: List<Food>,
-    modifier: Modifier
+    modifier: Modifier,
+    onAddToCart: (Food) -> Unit
 ) {
     LazyVerticalGrid(
         modifier = Modifier,
@@ -241,8 +593,110 @@ fun FoodCardGrid(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         items(foodList) { food ->
-            FoodCard(food = food)
+            FoodCard(food = food, onAddToCart = onAddToCart)
         }
     }
 }
 
+
+@Composable
+fun FoodPreview(
+    foodOrder: FoodOrder,
+    onIncrease: () -> Unit = {},
+    onDecrease: () -> Unit = {},
+    onDelete: () -> Unit = {}
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFFF9F9F9))
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // Title Row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = foodOrder.food.name,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.Black
+            )
+            Icon(
+                imageVector = Icons.Outlined.Delete,
+                contentDescription = "Delete",
+                tint = Color(0xFF902A1D),
+                modifier = Modifier
+                    .size(28.dp)
+                    .clickable { onDelete() }
+            )
+        }
+
+        // Price
+        Text(
+            text = "${foodOrder.food.price} VND",
+            fontSize = 16.sp,
+            color = Color.DarkGray,
+            fontWeight = FontWeight.Medium
+        )
+
+        // Quantity Controls
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color(0xFFEFEFEF))
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Remove,
+                contentDescription = "Decrease",
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable { onDecrease() },
+                tint = Color.Black
+            )
+            Text(
+                text = foodOrder.quantity.toString(),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium
+            )
+            Icon(
+                imageVector = Icons.Outlined.AddCircle,
+                contentDescription = "Increase",
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable { onIncrease() },
+                tint = Color.Black
+            )
+        }
+    }
+}
+
+@Composable
+fun FoodPreviewGrid(
+    items: List<FoodOrder>,
+    onIncrease: (String) -> Unit,
+    onDecrease: (String) -> Unit,
+    onDelete: (String) -> Unit
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(1),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        items(items) { order ->
+            FoodPreview(
+                foodOrder = order,
+                onIncrease = { onIncrease(order.food.id) },
+                onDecrease = { onDecrease(order.food.id) },
+                onDelete = { onDelete(order.food.id) }
+            )
+        }
+    }
+}

@@ -13,11 +13,9 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.snapping.SnapPosition
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,37 +23,29 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Cached
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -71,9 +61,9 @@ import coil.compose.rememberAsyncImagePainter
 import com.cloudinary.android.MediaManager
 import com.cloudinary.android.callback.ErrorInfo
 import com.cloudinary.android.callback.UploadCallback
-import com.example.campuscompanion.generalUi.ButtonUI
+import com.example.campuscompanion.domain.model.NewFeed
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.firebase.database.FirebaseDatabase
 import java.io.File
 
@@ -85,7 +75,7 @@ fun LocketScreen(navController: NavController) {
     val previewView = remember { PreviewView(context) }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var isPhotoTaken by remember { mutableStateOf(false) }
-    var commentText by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
     val imageCapture = remember { ImageCapture.Builder().build() }
     var lensFacing by remember { mutableStateOf(CameraSelector.LENS_FACING_BACK) }
     val cameraSelector = remember { CameraSelector.Builder().requireLensFacing(lensFacing).build() }
@@ -97,11 +87,20 @@ fun LocketScreen(navController: NavController) {
             isPhotoTaken = true
         }
     }
+    val permissionsState = rememberMultiplePermissionsState(
+        permissions = listOf(
+            android.Manifest.permission.CAMERA,
+            android.Manifest.permission.READ_EXTERNAL_STORAGE,
+        )
+    )
+    // Launch permission request once when screen is composed
+    LaunchedEffect(Unit) {
+        permissionsState.launchMultiplePermissionRequest()
+    }
 
     val cameraProviderFuture = remember {
         ProcessCameraProvider.getInstance(context)
     }
-
     LaunchedEffect(lensFacing) {
         val cameraProvider = cameraProviderFuture.get()
         val preview = Preview.Builder().build().also {
@@ -126,7 +125,7 @@ fun LocketScreen(navController: NavController) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(500.dp)
+                .height(400.dp)
                 .align(Alignment.Center)
         ) {
             if (!isPhotoTaken) {
@@ -141,7 +140,7 @@ fun LocketScreen(navController: NavController) {
                         painter = rememberAsyncImagePainter(it),
                         contentDescription = "Captured",
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxWidth().height(420.dp)
+                        modifier = Modifier.fillMaxWidth().height(400.dp)
                     )
                 }
             }
@@ -184,7 +183,7 @@ fun LocketScreen(navController: NavController) {
 
                                         override fun onSuccess(requestId: String?, resultData: MutableMap<Any?, Any?>?) {
                                             val uploadedUrl = resultData?.get("secure_url") as? String
-                                            //sendToFirebase(uploadedUrl ?: "", commentText)
+                                            sendToRealtimeDatabase(uploadedUrl ?: "", description)
                                             isUploading = false
                                             imageUri = null
                                             isPhotoTaken = false
@@ -239,8 +238,8 @@ fun LocketScreen(navController: NavController) {
             ){
                 if (isPhotoTaken) {
                     OutlinedTextField(
-                        value = commentText,
-                        onValueChange = { commentText = it },
+                        value = description,
+                        onValueChange = { description = it },
                         placeholder = { Text("Send Messages...") },
                         shape = RoundedCornerShape(50.dp),
                         modifier = Modifier
@@ -254,7 +253,7 @@ fun LocketScreen(navController: NavController) {
                         )
                     )
                 }
-                Spacer(modifier = Modifier.height(26.dp))
+                Spacer(modifier = Modifier.height(18.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 86.dp),
@@ -291,7 +290,7 @@ fun LocketScreen(navController: NavController) {
                                 }
                             }
                         )
-                    }) {
+                    },enabled = !isPhotoTaken ) {
                         Icon(Icons.Outlined.Circle, contentDescription = "Take Photo",Modifier.size(40.dp), tint = Color.White)
                     }
                     IconButton(onClick = {
@@ -300,7 +299,7 @@ fun LocketScreen(navController: NavController) {
                         } else {
                             CameraSelector.LENS_FACING_BACK
                         }
-                    }) {
+                    },enabled = !isPhotoTaken ) {
                         Icon(
                             Icons.Default.Cached, // use "Cached" icon to represent flip
                             contentDescription = "Switch Camera",
@@ -314,4 +313,24 @@ fun LocketScreen(navController: NavController) {
     }
 }
 
+fun sendToRealtimeDatabase(imageUrl: String, description: String) {
+    val database = FirebaseDatabase.getInstance("https://student-companion-9f110-default-rtdb.asia-southeast1.firebasedatabase.app")
+    val feedRef = database.getReference("newfeed") // "feeds" is the node where data will be saved
 
+    val feedId = feedRef.push().key ?: return
+    val newFeed = NewFeed(
+        id = feedId,
+        imageUrl = imageUrl,
+        description = description,
+        createdAt = System.currentTimeMillis(),
+        comment = emptyMap()
+    )
+
+    feedRef.child(feedId).setValue(newFeed)
+        .addOnSuccessListener {
+            Log.d("RealtimeDB", "Feed uploaded successfully")
+        }
+        .addOnFailureListener { e ->
+            Log.e("RealtimeDB", "Failed to upload feed", e)
+        }
+}

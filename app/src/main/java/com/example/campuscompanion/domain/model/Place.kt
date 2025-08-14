@@ -1,12 +1,12 @@
 package com.example.campuscompanion.domain.model
 
-import com.google.firebase.Timestamp
-
-data class Room(
+data class Place(
     val id: String = "",
     val name: String = "",
-    val location: String = "",
+    val category: String = "",
+    val lat:  Double = 0.0,
+    val long:  Double = 0.0,
     val description: String = "",
-    val availableTime: Timestamp? = null,
+    val star: Double = 0.0,
     val imageUrl: String = "",
 )

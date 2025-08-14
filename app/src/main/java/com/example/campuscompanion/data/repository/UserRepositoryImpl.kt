@@ -1,6 +1,5 @@
 package com.example.campuscompanion.data.repository
 
-import androidx.compose.runtime.LaunchedEffect
 import com.example.campuscompanion.domain.model.User
 import com.example.campuscompanion.domain.repository.UserRepository
 import com.google.firebase.auth.FirebaseAuth

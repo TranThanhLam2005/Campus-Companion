@@ -35,7 +35,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.campuscompanion.Screen
 import com.example.campuscompanion.presentation.feature.clubscreen.ClubScreen
 import com.example.campuscompanion.presentation.feature.clubscreen.ClubScreenDetail
-import com.example.campuscompanion.presentation.feature.home.HomeScreen
+import com.example.campuscompanion.presentation.feature.eventscreen.EventDetailScreen
+import com.example.campuscompanion.presentation.feature.homescreen.HomeScreen
 import com.example.campuscompanion.presentation.feature.profilescreen.ProfileScreen
 import com.example.campuscompanion.presentation.feature.spotscreen.CafeteriaScreenDetail
 import com.example.campuscompanion.presentation.feature.spotscreen.SpotScreen
@@ -86,8 +87,17 @@ fun AppNavHost(
             val cafeteriaId = backStackEntry.arguments?.getString("cafeteriaId") ?: return@composable
             CafeteriaScreenDetail(cafeteriaId = cafeteriaId, navController = navController)
         }
+
+        composable(Screen.EventDetailScreen.route+ "/{clubId}/{eventId}") {
+            backStackEntry ->
+            val clubId = backStackEntry.arguments?.getString("clubId") ?: return@composable
+            val eventId = backStackEntry.arguments?.getString("eventId") ?: return@composable
+
+            EventDetailScreen(clubId = clubId, eventId = eventId, navController = navController)
+        }
     }
 }
+
 @Composable
 fun NavigationBarExample(modifier: Modifier = Modifier) {
     val navController = rememberNavController()

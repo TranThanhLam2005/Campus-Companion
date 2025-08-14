@@ -39,12 +39,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.campuscompanion.R
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.example.campuscompanion.domain.model.Room
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
@@ -120,18 +122,37 @@ fun StudySection(modifier: Modifier = Modifier) {
 fun RoomDetail(
     room: Room
 ) {
+    val cleanUrl = room.imageUrl?.trim()
+    val context = LocalContext.current
+    val painter = rememberAsyncImagePainter(
+        model = ImageRequest.Builder(context)
+            .data(cleanUrl)
+            .crossfade(true)
+            .build()
+    )
     Box(){
-        Image(
-            painter = painterResource(id = R.drawable.maclab),
-            contentDescription =  room.description,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .clip(
-                    RoundedCornerShape(20.dp)
-                )
-        )
+        if(!cleanUrl.isNullOrBlank()){
+            Image(
+                painter = painter,
+                contentDescription =  room.description,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(
+                        RoundedCornerShape(20.dp)
+                    )
+            )
+        }else{
+            // Placeholder for loading or missing image
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .background(Color.LightGray)
+            )
+        }
+
         Box(
             modifier = Modifier
                 .background(
@@ -163,7 +184,7 @@ fun RoomDetail(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold
                 )
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -174,7 +195,7 @@ fun RoomDetail(
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Light
                     )
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         formatTimestamp(room.availableTime),
                         color = Color.White,
@@ -192,6 +213,15 @@ fun RoomCard(
     room: Room,
     onClick: (Room) -> Unit
 ) {
+    val cleanUrl = room.imageUrl?.trim()
+    val context = LocalContext.current
+    val painter = rememberAsyncImagePainter(
+        model = ImageRequest.Builder(context)
+            .data(cleanUrl)
+            .crossfade(true)
+            .build()
+    )
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -202,16 +232,27 @@ fun RoomCard(
                 onClick(room)
             }
     ){
-        Image(
-            painter = painterResource(id = R.drawable.maclab),
-            contentDescription =  room.description,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(120.dp)
-                .clip(
-                    RoundedCornerShape(20.dp)
-                )
-        )
+        if(!cleanUrl.isNullOrBlank()){
+            Image(
+                painter = painter,
+                contentDescription =  room.description,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(
+                        RoundedCornerShape(20.dp)
+                    )
+            )
+        }else{
+            // Placeholder for loading or missing image
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .background(Color.LightGray)
+            )
+        }
+
         Spacer(modifier = Modifier.width(10.dp))
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp)

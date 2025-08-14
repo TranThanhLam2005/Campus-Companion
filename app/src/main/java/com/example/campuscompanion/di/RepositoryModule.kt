@@ -2,10 +2,16 @@ package com.example.campuscompanion.di
 
 import com.example.campuscompanion.data.repository.CafeteriaRepositoryImpl
 import com.example.campuscompanion.data.repository.ClubRepositoryImpl
+import com.example.campuscompanion.data.repository.EventRepositoryImpl
+import com.example.campuscompanion.data.repository.NewFeedRepositoryImpl
+import com.example.campuscompanion.data.repository.PlaceRepositoryImpl
 import com.example.campuscompanion.data.repository.RoomRepositoryImpl
 import com.example.campuscompanion.data.repository.UserRepositoryImpl
 import com.example.campuscompanion.domain.repository.CafeteriaRepository
 import com.example.campuscompanion.domain.repository.ClubRepository
+import com.example.campuscompanion.domain.repository.EventRepository
+import com.example.campuscompanion.domain.repository.NewFeedRepository
+import com.example.campuscompanion.domain.repository.PlaceRepository
 import com.example.campuscompanion.domain.repository.RoomRepository
 import com.example.campuscompanion.domain.repository.UserRepository
 import dagger.Binds
@@ -42,4 +48,21 @@ abstract class RepositoryModule {
         impl: RoomRepositoryImpl
     ): RoomRepository
 
+    @Binds
+    @Singleton
+    abstract fun bindNewFeedRepository(
+        impl: NewFeedRepositoryImpl
+    ): NewFeedRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindPlaceRepository(
+        impl: PlaceRepositoryImpl
+    ): PlaceRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindEventRepository(
+        impl: EventRepositoryImpl
+    ): EventRepository
 }

@@ -15,8 +15,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Logout
+import androidx.compose.material.icons.outlined.Chat
+import androidx.compose.material.icons.outlined.Send
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -29,10 +38,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -42,13 +50,15 @@ import com.example.campuscompanion.Screen
 import com.example.campuscompanion.generalUi.ButtonUI
 import com.google.firebase.auth.FirebaseAuth
 
+
 @Composable
 fun ProfileScreen(modifier: Modifier = Modifier, navController: NavController) {
-
+    var isChatBoxOpen by remember { mutableStateOf(false) }
 
     val viewModel: ProfileViewModel = hiltViewModel()
     val userState by viewModel.user.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    var message by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         viewModel.loadUser()
@@ -143,17 +153,121 @@ fun ProfileScreen(modifier: Modifier = Modifier, navController: NavController) {
                         )
                     }
                     Spacer(modifier = Modifier.height(16.dp))
-                    ButtonUI(
-                        text = "Logout",
-                        onClick = {handleLogout(navController)},
-                        icon = Icons.AutoMirrored.Outlined.Logout,
-                        modifier = modifier.clip(RoundedCornerShape(30.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ){
+                        ButtonUI(
+                            text = "Logout",
+                            onClick = {handleLogout(navController)},
+                            icon = Icons.AutoMirrored.Outlined.Logout,
+                            modifier = modifier.clip(RoundedCornerShape(50.dp))
+                        )
+                        ButtonUI(
+                            text="Chat Box",
+                            onClick = { isChatBoxOpen = true },
+                            icon = Icons.Outlined.Chat,
+                            modifier = modifier.clip(RoundedCornerShape(50.dp))
+                        )
+                    }
+                }
+                if (isChatBoxOpen) {
+                    AlertDialog(
+                        onDismissRequest = { isChatBoxOpen = false },
+                        confirmButton = {},
+                        dismissButton = {
+                            TextButton(onClick = { isChatBoxOpen = false }) {
+                                Text("Close", color = MaterialTheme.colorScheme.primary)
+                            }
+                        },
+                        title = {
+                            Text(
+                                text = "🗨️ Chat Support",
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        },
+                        text = {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(500.dp) // Fixed height for scrollable area
+                                    .padding(top = 8.dp)
+                                    .background(Color.White, shape = RoundedCornerShape(12.dp))
+                            ) {
+                                // Scrollable chat messages area
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(Color(0xFFF6F6F6))
+                                        .padding(12.dp)
+                                ) {
+                                    // Placeholder message (you can add LazyColumn here later)
+                                    Text(
+                                        text = "Welcome to the chat! How can I assist you today?",
+                                        color = Color.DarkGray,
+                                        fontSize = 16.sp
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                // Message input row
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    OutlinedTextField(
+                                        value = message,
+                                        onValueChange = { message = it },
+                                        placeholder = { Text("Write reply...", color = Color.Gray) },
+                                        modifier = Modifier
+                                            .fillMaxWidth(),
+                                        shape = RoundedCornerShape(24.dp),
+                                        textStyle = TextStyle(
+                                            color = Color.Black,
+                                            fontWeight = FontWeight.Medium,
+                                            fontSize = 18.sp
+                                        ),
+                                        colors = TextFieldDefaults.colors(
+                                            focusedContainerColor = Color.White,
+                                            unfocusedContainerColor = Color.White,
+                                            focusedTextColor = Color.Black,
+                                            unfocusedTextColor = Color.Black,
+                                            cursorColor = Color.Black,
+                                            focusedIndicatorColor = Color.Black,
+                                            unfocusedIndicatorColor = Color.Black
+                                        ),
+                                        trailingIcon = {
+                                            IconButton(onClick = {
+                                                message = ""
+                                            }) {
+                                                Icon(Icons.Outlined.Send, contentDescription = "Send")
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        },
+                        shape = RoundedCornerShape(20.dp),
+                        containerColor = Color.White
                     )
                 }
             }
         }
     }
 }
+
+
 fun handleLogout(navController: NavController){
     FirebaseAuth.getInstance().signOut()
     navController.navigate(Screen.LoginScreen.route) {
@@ -161,9 +275,3 @@ fun handleLogout(navController: NavController){
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun Preview(){
-    val context = LocalContext.current
-    ProfileScreen(navController = NavController(context))
-}

@@ -124,10 +124,3 @@ fun OnboardingGraphUI(
         }
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun OnboardingGraphUIPreview() {
-    OnboardingGraphUI(OnboardingModel.ThirdPages, pageIndex = 3, lastPageIndex = 4, onFinished = {}, onNext = {})
-}
-

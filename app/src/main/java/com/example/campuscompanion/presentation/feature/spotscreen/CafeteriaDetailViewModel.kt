@@ -4,9 +4,7 @@ package com.example.campuscompanion.presentation.feature.spotscreen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.campuscompanion.domain.model.Cafeteria
-import com.example.campuscompanion.domain.model.Club
 import com.example.campuscompanion.domain.usecase.GetCafeteriaUseCase
-
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

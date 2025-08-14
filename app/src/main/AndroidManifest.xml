@@ -11,6 +11,8 @@
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <application
         android:name=".Companion"
         android:allowBackup="true"
@@ -25,6 +27,9 @@
         <meta-data
             android:name="CLOUDINARY_URL"
             android:value="cloudinary://@dvydxq82p"/>
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyD-EEdM3Oks_LXAumGsCxAAfURC-FyFsP0" />
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

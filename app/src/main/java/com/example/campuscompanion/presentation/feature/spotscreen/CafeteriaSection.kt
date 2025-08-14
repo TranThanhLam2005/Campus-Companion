@@ -1,5 +1,6 @@
 package com.example.campuscompanion.presentation.feature.spotscreen
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -12,19 +13,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Payment
-import androidx.compose.material.icons.filled.PriceCheck
-import androidx.compose.material.icons.outlined.Book
-import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material.icons.outlined.PriceCheck
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -38,14 +32,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.campuscompanion.R
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.example.campuscompanion.Screen
 import com.example.campuscompanion.domain.model.Cafeteria
 
@@ -92,6 +86,14 @@ fun CafeteriaCard(
     cafeteria: Cafeteria,
     navController: NavController,
 ) {
+    val cleanUrl = cafeteria.imageUrl?.trim()
+    val context = LocalContext.current
+    val painter = rememberAsyncImagePainter(
+        model = ImageRequest.Builder(context)
+            .data(cleanUrl)
+            .crossfade(true)
+            .build()
+    )
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp),
         modifier = Modifier
@@ -99,19 +101,28 @@ fun CafeteriaCard(
             .background(Color.White)
             .padding(8.dp)
     ){
-        Image(
-            painter = painterResource(id = R.drawable.catin),
-            contentDescription =  cafeteria.description,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(
-                    RoundedCornerShape(20.dp)
-                )
-                .clickable(){
-                    navController.navigate(Screen.CafeteriaScreenDetail.route + "/${cafeteria.id}")
-                }
-        )
+        if (!cleanUrl.isNullOrBlank()) {
+            Image(
+                painter = painter,
+                contentDescription = cafeteria.description,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .clickable {
+                        navController.navigate(Screen.CafeteriaScreenDetail.route + "/${cafeteria.id}")
+                    }
+            )
+        } else {
+            // Placeholder for loading or missing image
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .background(Color.LightGray)
+            )
+        }
         Spacer(modifier = Modifier.height(8.dp))
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -121,7 +132,7 @@ fun CafeteriaCard(
                 color = Color.Black,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable(){
+                modifier = Modifier.clickable{
                     navController.navigate(Screen.CafeteriaScreenDetail.route + "/${cafeteria.id}")
                 }
             )

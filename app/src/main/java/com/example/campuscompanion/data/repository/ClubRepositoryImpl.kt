@@ -3,6 +3,7 @@ package com.example.campuscompanion.data.repository
 import com.example.campuscompanion.domain.model.Club
 import com.example.campuscompanion.domain.model.Event
 import com.example.campuscompanion.domain.repository.ClubRepository
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -44,5 +45,42 @@ class ClubRepositoryImpl @Inject constructor(
         }
 
         return club.copy(events = events)
+    }
+
+    override suspend fun getRemainingClubs(userJoinedClubIds: List<String>): List<Club> = coroutineScope {
+        val allClubsSnapshot = firestore.collection("clubs").get().await()
+
+        val remainingClubsIds = allClubsSnapshot.documents
+            .map { it.id }
+            .filterNot { userJoinedClubIds.contains(it) }
+
+        val deferredClubs = remainingClubsIds.map { id ->
+            async {
+                val doc = firestore.collection("clubs").document(id).get().await()
+                doc.toObject(Club::class.java)?.copy(id = doc.id)
+            }
+        }
+        deferredClubs.awaitAll().filterNotNull()
+    }
+
+    override suspend fun addMemberToClub(
+        clubId: String,
+        userId: String
+    ) {
+        val clubRef = firestore.collection("clubs").document(clubId)
+        clubRef.update("memberList", FieldValue.arrayUnion(userId)).await()
+        val userRef = firestore.collection("users").document(userId)
+        userRef.update("joinedClubs", FieldValue.arrayUnion(clubId)).await()
+    }
+
+    override suspend fun removeMemberFromClub(
+        clubId: String,
+        userId: String
+    ) {
+        val clubRef = firestore.collection("clubs").document(clubId)
+        clubRef.update("memberList", FieldValue.arrayRemove(userId)).await()
+
+        val userRef = firestore.collection("users").document(userId)
+        userRef.update("joinedClubs", FieldValue.arrayRemove(clubId)).await()
     }
 }
