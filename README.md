@@ -5,7 +5,7 @@ An Android mobile application designed to enhance campus life for RMIT students 
 ---
 
 ## 📖 Overview
-**Campus Companion** was developed as part of my **Mobile Development** course at RMIT University.  
+**Campus Companion** was individually developed as part of my **Mobile Development** course at RMIT University.  
 While RMIT already has Canvas for learning management, there was no dedicated app for non-academic student life.  
 This project aims to fill that gap, offering a practical, feature-rich platform that connects students to campus activities and services.
 
