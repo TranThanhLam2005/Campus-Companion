@@ -46,5 +46,4 @@ class CafeteriaRepositoryImpl @Inject constructor(
 
         cafeteria.copy(foodTypeList = foodTypes)
     }
-
 }

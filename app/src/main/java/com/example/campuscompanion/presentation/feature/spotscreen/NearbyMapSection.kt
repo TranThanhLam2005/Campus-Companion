@@ -111,7 +111,7 @@ fun NearbyMapSection(modifier: Modifier = Modifier) {
             .fillMaxSize()
             .clip(RoundedCornerShape(20.dp))
             .background(Color.White)
-            .padding(bottom = 80.dp, top = 16.dp, start = 16.dp, end = 16.dp)
+            .padding(top = 16.dp, start = 16.dp, end = 16.dp)
         ) {
             Text(
                 "Recommended Places By Alumni",

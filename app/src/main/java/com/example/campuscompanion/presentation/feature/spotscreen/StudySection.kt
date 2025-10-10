@@ -104,9 +104,7 @@ fun StudySection(modifier: Modifier = Modifier) {
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(20.dp))
-                .background(Color(0xFFF2F4F7))
-                .padding(bottom = 80.dp)
-            ,
+                .background(Color(0xFFF2F4F7)),
         ){
             RoomCardGrid(
                 roomList = List,

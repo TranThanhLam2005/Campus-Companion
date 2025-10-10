@@ -1,6 +1,5 @@
 package com.example.campuscompanion.presentation.feature.spotscreen
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -70,7 +69,7 @@ fun CafeteriaSection(modifier: Modifier = Modifier, navController: NavController
             modifier = Modifier
                 .clip(RoundedCornerShape(20.dp))
                 .background(Color(0xFFF2F4F7))
-                .padding(bottom = 80.dp),
+                .padding(2.dp)
         ){
             CafeteriaCardGrid(
                 cafeteriaList = cafeterias,

@@ -1,6 +1,7 @@
 package com.example.campuscompanion.presentation.feature.spotscreen
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,6 +22,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.AddCircle
 import androidx.compose.material.icons.outlined.ArrowRight
 import androidx.compose.material.icons.outlined.CheckCircle
@@ -54,7 +56,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -66,13 +70,13 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.example.campuscompanion.domain.model.Food
+import com.example.campuscompanion.domain.model.FoodOrder
+import com.example.campuscompanion.domain.model.Order
 import com.example.campuscompanion.generalUi.ButtonUI
+import kotlinx.coroutines.delay
 
 
-data class FoodOrder(
-    val food: Food = Food(),
-    var quantity: Int
-)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CafeteriaScreenDetail(cafeteriaId: String, navController: NavController) {
@@ -80,6 +84,7 @@ fun CafeteriaScreenDetail(cafeteriaId: String, navController: NavController) {
     val viewModel: CafeteriaDetailViewModel = hiltViewModel()
     val cafeteriaState by viewModel.cafeteria.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val lastOrderId by viewModel.lastOrderId.collectAsState()
 
     // Selected type of food
     var selected by remember { mutableStateOf<String?>(null) }
@@ -100,7 +105,28 @@ fun CafeteriaScreenDetail(cafeteriaId: String, navController: NavController) {
             cartItems.sumOf { it.food.price * it.quantity }
         }
     }
+    var isPressedTrash by remember { mutableStateOf(false) }
+    // Scale animation (grow when pressed)
+    val scale by animateFloatAsState(
+        targetValue = if (isPressedTrash) 1.3f else 1f,
+        animationSpec = tween(durationMillis = 150),
+        label = "scale"
+    )
 
+    // Rotation animation (-30° to 0°)
+    val rotation by animateFloatAsState(
+        targetValue = if (isPressedTrash) -30f else 0f,
+        animationSpec = tween(durationMillis = 150),
+        label = "rotation"
+    )
+
+    // Reset animation after press
+    LaunchedEffect(isPressedTrash) {
+        if (isPressedTrash) {
+            delay(150)
+            isPressedTrash = false
+        }
+    }
     // helper function to add to cart
     fun addToCart(food: Food) {
         val index = cartItems.indexOfFirst { it.food.id == food.id }
@@ -182,32 +208,44 @@ fun CafeteriaScreenDetail(cafeteriaId: String, navController: NavController) {
                         fontWeight = FontWeight.Bold,
                     )
                 }
-                Box(
-                    contentAlignment = Alignment.TopEnd
-                ) {
-                    IconButton(onClick = { showCart = !showCart }) {
-                        Icon(
-                            imageVector = Icons.Outlined.ShoppingCart,
-                            contentDescription = "Cart",
-                            tint = Color.Black,
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-
-                    if (cartItems.isNotEmpty()) {
-                        Box(
-                            modifier = Modifier
-                                .size(16.dp)
-                                .background(Color(0xFF902A1D), shape = RoundedCornerShape(50))
-                                .align(Alignment.TopEnd),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = cartItems.sumOf { it.quantity }.toString(),
-                                color = Color.White,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ){
+                    Icon(
+                        imageVector = Icons.Filled.ChatBubbleOutline,
+                        contentDescription = "Chat",
+                        tint = Color.Black,
+                        modifier = Modifier.clickable{
+                            //navController.popBackStack()
+                        }
+                    )
+                    Box(
+                        contentAlignment = Alignment.TopEnd
+                    ) {
+                        IconButton(onClick = { showCart = !showCart }) {
+                            Icon(
+                                imageVector = Icons.Outlined.ShoppingCart,
+                                contentDescription = "Cart",
+                                tint = Color.Black,
+                                modifier = Modifier.size(28.dp)
                             )
+                        }
+                        if (cartItems.isNotEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .background(Color(0xFF902A1D), shape = RoundedCornerShape(50))
+                                    .align(Alignment.TopEnd),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = cartItems.sumOf { it.quantity }.toString(),
+                                    color = Color.White,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
                 }
@@ -343,10 +381,18 @@ fun CafeteriaScreenDetail(cafeteriaId: String, navController: NavController) {
                     )
                     Icon(
                         imageVector = Icons.Outlined.Delete,
-                        contentDescription = "Edit",
+                        contentDescription = "Trash",
                         tint = Color(0xFF902A1D),
-                        modifier = Modifier.clickable{
-                            cartItems.clear()
+                        modifier = Modifier
+                            .graphicsLayer(
+                                scaleX = scale,
+                                scaleY = scale,
+                                rotationZ = rotation
+                            )
+                            .clickable{
+                                isPressedTrash = true
+                                cartItems.clear()
+                                takenote = ""
                         }.size(34.dp)
                     )
                 }
@@ -433,6 +479,7 @@ fun CafeteriaScreenDetail(cafeteriaId: String, navController: NavController) {
                 ButtonUI(
                     text ="PlaceOrder",
                     onClick = {
+                        viewModel.addOrder(cafeteriaId, cartItems, "Pending", total, takenote, name)
                         showCart = false
                         showConfirmation = true
                         cartItems.clear()
@@ -490,7 +537,7 @@ fun CafeteriaScreenDetail(cafeteriaId: String, navController: NavController) {
                     }
 
                     Text(
-                        text = "Order #12345",
+                        text = "Order #${lastOrderId}",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color.Black
@@ -513,6 +560,18 @@ fun CafeteriaScreenDetail(cafeteriaId: String, navController: NavController) {
 
 @Composable
 fun FoodCard(food: Food, onAddToCart:(Food) -> Unit) {
+
+    var isPressed by remember { mutableStateOf(false) }
+    LaunchedEffect(isPressed) {
+        delay(150)
+        isPressed = false
+    }
+    // 👇 Animate the scale (1f → 1.3f → 1f)
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 1.3f else 1f,
+        animationSpec = tween(durationMillis = 150),
+        label = "scale"
+    )
     val cleanUrl = food.imageUrl?.trim()
     val context = LocalContext.current
     val painter = rememberAsyncImagePainter(
@@ -573,7 +632,9 @@ fun FoodCard(food: Food, onAddToCart:(Food) -> Unit) {
                 tint = Color.Black,
                 modifier = Modifier
                     .size(20.dp)
+                    .scale(scale)
                     .clickable(){
+                        isPressed = true
                         onAddToCart(food)
                     }
             )
@@ -589,8 +650,8 @@ fun FoodCardGrid(
     LazyVerticalGrid(
         modifier = Modifier,
         columns = GridCells.Fixed(2),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         items(foodList) { food ->
             FoodCard(food = food, onAddToCart = onAddToCart)

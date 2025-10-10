@@ -41,8 +41,8 @@ fun SpotScreen(modifier: Modifier = Modifier, navController: NavController) {
         modifier = modifier
             .fillMaxSize()
             .background(Color.Black)
-            .padding(20.dp)
-        ,
+            .padding(horizontal = 20.dp)
+            .padding(bottom = 120.dp),
     ){
         Text(
             text = "Campus Spots",

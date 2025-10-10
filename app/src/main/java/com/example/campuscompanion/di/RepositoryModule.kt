@@ -4,6 +4,7 @@ import com.example.campuscompanion.data.repository.CafeteriaRepositoryImpl
 import com.example.campuscompanion.data.repository.ClubRepositoryImpl
 import com.example.campuscompanion.data.repository.EventRepositoryImpl
 import com.example.campuscompanion.data.repository.NewFeedRepositoryImpl
+import com.example.campuscompanion.data.repository.OrderRepositoryImpl
 import com.example.campuscompanion.data.repository.PlaceRepositoryImpl
 import com.example.campuscompanion.data.repository.RoomRepositoryImpl
 import com.example.campuscompanion.data.repository.UserRepositoryImpl
@@ -11,6 +12,7 @@ import com.example.campuscompanion.domain.repository.CafeteriaRepository
 import com.example.campuscompanion.domain.repository.ClubRepository
 import com.example.campuscompanion.domain.repository.EventRepository
 import com.example.campuscompanion.domain.repository.NewFeedRepository
+import com.example.campuscompanion.domain.repository.OrderRepository
 import com.example.campuscompanion.domain.repository.PlaceRepository
 import com.example.campuscompanion.domain.repository.RoomRepository
 import com.example.campuscompanion.domain.repository.UserRepository
@@ -65,4 +67,10 @@ abstract class RepositoryModule {
     abstract fun bindEventRepository(
         impl: EventRepositoryImpl
     ): EventRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindOrderRepository(
+        impl: OrderRepositoryImpl
+    ): OrderRepository
 }
