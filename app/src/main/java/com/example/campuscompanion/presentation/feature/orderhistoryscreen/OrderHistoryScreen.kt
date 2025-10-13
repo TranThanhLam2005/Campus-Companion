@@ -1,5 +1,6 @@
 package com.example.campuscompanion.presentation.feature.orderhistoryscreen
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,11 +19,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChatBubbleOutline
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -33,40 +36,45 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import com.example.campuscompanion.R
 import com.example.campuscompanion.Screen
-import com.example.campuscompanion.domain.model.Order
 import com.example.campuscompanion.presentation.feature.settingscreen.ChatDialog
-import com.example.campuscompanion.presentation.feature.spotscreen.SpotCategory
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 
-enum class OrderStatus (val title:String){
-    PENDING("Pending"),
-    PROCESSING("Processing"),
-    DONE("Done"),
+enum class OrderStatus(val code: String, @StringRes val titleRes: Int) {
+    PENDING("Pending", R.string.status_pending),
+    PROCESSING("Processing", R.string.status_processing),
+    DONE("Done", R.string.status_done),
+    CANCELLED("Cancelled", R.string.status_cancelled)
 }
-
 @Composable
 fun OrderHistoryScreen(
     navController: NavController
-){
+) {
     val viewModel: OrderHistoryViewModel = hiltViewModel()
     var isChatBoxOpen by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf("") }
     var selected by remember { mutableStateOf(OrderStatus.PENDING) }
-    val orders by viewModel.orders.collectAsState()
+    val ordersWithCafeteria by viewModel.ordersWithCafeteria.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    // Load once when screen opens
-    LaunchedEffect(Unit) {
-        viewModel.loadOrders()
+
+
+// ✅ Trigger when 'selected' changes
+    LaunchedEffect(selected) {
+        viewModel.loadOrders(selected.code)
     }
     Column(
         modifier = Modifier
@@ -88,14 +96,14 @@ fun OrderHistoryScreen(
             ) {
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = stringResource(R.string.back),
                     tint = Color.Black,
                     modifier = Modifier.clickable {
                         navController.popBackStack()
                     }
                 )
                 Text(
-                    text = "Order history",
+                    text = stringResource(R.string.order_history),
                     color = Color.Black,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
@@ -103,7 +111,7 @@ fun OrderHistoryScreen(
             }
             Icon(
                 imageVector = Icons.Filled.ChatBubbleOutline,
-                contentDescription = "Chat",
+                contentDescription = stringResource(R.string.chat),
                 tint = Color.Black,
                 modifier = Modifier.clickable {
                     isChatBoxOpen = true
@@ -125,14 +133,16 @@ fun OrderHistoryScreen(
                 .fillMaxWidth()
                 .background(Color.White)
                 .padding(bottom = 10.dp, top = 8.dp),
-        ){
+        ) {
             OrderStatus.entries.forEach { status ->
                 AssistChip(
-                    onClick = { selected = status },
+                    onClick = {
+                        selected = status
+                    },
                     label = {
                         Text(
-                            text = status.title,
-                            fontSize = 16.sp,
+                            text = stringResource(status.titleRes),
+                            fontSize = 14.sp,
                             modifier = Modifier.padding(vertical = 12.dp)
                         )
                     },
@@ -149,24 +159,44 @@ fun OrderHistoryScreen(
         when {
             isLoading -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Loading orders...")
+                    Text(stringResource(R.string.loading_orders))
                 }
             }
-            orders.isEmpty() -> {
+            ordersWithCafeteria.isEmpty() -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No orders found.")
+                    Text(stringResource(R.string.no_orders_found))
                 }
             }
             else -> {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color(0xFFF5F5F5))
-                        .padding(16.dp)
-                ) {
-                    items(orders.size) { index ->
-                        CardOrder(order = orders[index])
+                val filteredOrders = ordersWithCafeteria
+                if (filteredOrders.isEmpty()) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(stringResource(R.string.no_status_orders_found, stringResource(selected.titleRes).lowercase()))
+                    }
+                } else {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color(0xFFF5F5F5))
+                            .padding(16.dp)
+                    ) {
+                        items(filteredOrders.size) { index ->
+                            CardOrder(
+                                ordersWithCafeteria = filteredOrders[index],
+                                onCancelled = {
+                                    viewModel.updateOrderStatus(
+                                        filteredOrders[index].order.id,
+                                        OrderStatus.CANCELLED.code
+                                    )
+                                    // 🔁 Refresh orders
+                                    viewModel.loadOrders(selected.code)
+                                },
+                                onSeeDetail = {
+                                    navController.navigate(Screen.OrderDetailScreen.route + "/${filteredOrders[index].order.id}")
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -176,8 +206,36 @@ fun OrderHistoryScreen(
 
 @Composable
 fun CardOrder(
-    order: Order
+    ordersWithCafeteria: OrderWithCafeteria,
+    onCancelled: () -> Unit,
+    onSeeDetail: () -> Unit = {},
+    onReorder: () -> Unit = {},
+    onReview: () -> Unit = {}
 ) {
+    var showCancelDialog by remember { mutableStateOf(false) }
+
+    // 🔔 Confirmation popup when cancelling
+    if (showCancelDialog) {
+        AlertDialog(
+            onDismissRequest = { showCancelDialog = false },
+            title = { Text(stringResource(R.string.cancel_order)) },
+            text = { Text(stringResource(R.string.cancel_order_confirm)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showCancelDialog = false
+                    onCancelled()
+                }) {
+                    Text(stringResource(R.string.yes), color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCancelDialog = false }) {
+                    Text(stringResource(R.string.no))
+                }
+            }
+        )
+    }
+
     Column(
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
@@ -185,26 +243,29 @@ fun CardOrder(
             .padding(16.dp)
             .fillMaxWidth()
     ) {
-        // 🏪 Header: Restaurant + Status
+        // 🏪 Header
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
+            ordersWithCafeteria.cafeteria?.name?.let {
+                Text(
+                    text = it.ifBlank { stringResource(R.string.unknown_restaurant) },
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = Color.Black
+                )
+            }
             Text(
-                text = order.cafeteriaId.ifBlank { "Unknown Restaurant" },
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp,
-                color = Color.Black
-            )
-            Text(
-                text = order.status,
+                text = ordersWithCafeteria.order.status,
                 fontSize = 14.sp,
-                color = when (order.status) {
-                    "Pending" -> Color(0xFFFF9800)
-                    "Processing" -> Color(0xFF2196F3)
-                    "Done" -> Color(0xFF4CAF50)
-                    else -> Color.Gray
+                color = when (ordersWithCafeteria.order.status) {
+                    (OrderStatus.PENDING.code) -> Color(0xFFFF9800)
+                    (OrderStatus.PROCESSING.code) -> Color(0xFF044409)
+                    (OrderStatus.DONE.code) -> Color(0xFF902A1D)
+                    (OrderStatus.CANCELLED.code) -> Color.Red
+                    else -> Color.Black
                 },
                 fontWeight = FontWeight.Medium
             )
@@ -212,44 +273,73 @@ fun CardOrder(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // 🕒 Order details
+        val cleanUrl = ordersWithCafeteria.cafeteria?.imageUrl?.trim()
+        val context = LocalContext.current
+        val painter = rememberAsyncImagePainter(
+            model = ImageRequest.Builder(context)
+                .data(cleanUrl)
+                .crossfade(true)
+                .build()
+        )
+
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.Top,
             modifier = Modifier.fillMaxWidth()
         ) {
-            // 🍔 Image / placeholder
-            Box(
-                modifier = Modifier
-                    .height(100.dp)
-                    .width(140.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFFE0E0E0))
-            )
+            if (!cleanUrl.isNullOrBlank()) {
+                Image(
+                    painter = painter,
+                    contentDescription = ordersWithCafeteria.cafeteria?.description ?: "",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .width(140.dp)
+                        .height(100.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .clickable { onSeeDetail() }
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .width(140.dp)
+                        .height(100.dp)
+                        .background(Color.LightGray)
+                )
+            }
 
-            // 📦 Order Info
             Column(
                 verticalArrangement = Arrangement.spacedBy(6.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                val formattedDate = order.orderedAt?.toDate()?.let {
-                    SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault()).format(it)
-                } ?: "Unknown"
-
-                Text(
-                    text = "Order at: $formattedDate",
-                    color = Color.DarkGray,
-                    fontSize = 14.sp
-                )
+                val formattedDate = ordersWithCafeteria.order.orderedAt?.toDate()?.let {
+                    SimpleDateFormat("HH:mm dd-MM-yyyy", Locale.getDefault()).format(it)
+                } ?: stringResource(R.string.unknown)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ){
+                    Text(stringResource(R.string.order_at),
+                        color = Color.Gray,
+                        fontSize = 14.sp
+                    )
+                    Text(" $formattedDate",
+                        color = Color.Gray,
+                        fontSize = 14.sp,
+                    )
+                }
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Quantity", color = Color.Gray)
-                    Text("x${order.foodOrderList.sumOf { it.quantity }}", fontWeight = FontWeight.Medium)
+                    Text(stringResource(R.string.quantity), color = Color.Gray)
+                    Text("x${ordersWithCafeteria.order.foodOrderList.sumOf { it.quantity }}", fontWeight = FontWeight.Medium)
                 }
-                Text("Note: ${order.note.ifBlank { "No note" }}", color = Color.Gray, fontSize = 14.sp)
-
+                Text(
+                    stringResource(R.string.note_colon, ordersWithCafeteria.order.note.ifBlank { stringResource(R.string.no_note) }),
+                    color = Color.Gray,
+                    fontSize = 14.sp
+                )
 
                 Divider(
                     color = Color.LightGray.copy(alpha = 0.5f),
@@ -262,43 +352,107 @@ fun CardOrder(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "Total Price",
+                        text = stringResource(R.string.total_price),
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp
                     )
-                    Text("${order.totalPrice} VND", fontWeight = FontWeight.Bold)
+                    Text("${ordersWithCafeteria.order.totalPrice} ${stringResource(R.string.vnd)}", fontWeight = FontWeight.Bold)
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 🧾 Actions (inline text buttons)
-        Row(
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(
-                text = "Cancel Order",
-                color = Color.Red,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.clickable { /* TODO: cancel logic */ }
-            )
-
-            Divider(
-                color = Color.LightGray,
-                modifier = Modifier
-                    .height(20.dp)
-                    .width(1.dp)
-            )
-
-            Text(
-                text = "Review",
-                color = Color.Black,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.clickable { /* TODO: review logic */ }
-            )
+        // 🧾 Dynamic Action Buttons
+        when (ordersWithCafeteria.order.status) {
+            (OrderStatus.PENDING.code) -> {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = stringResource(R.string.cancel_order),
+                        color = Color.Red,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.clickable { showCancelDialog = true }
+                    )
+                    Divider(
+                        color = Color.LightGray,
+                        modifier = Modifier
+                            .height(20.dp)
+                            .width(1.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.see_detail),
+                        color = Color.Black,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.clickable { onSeeDetail() }
+                    )
+                }
+            }
+            (OrderStatus.PROCESSING.code) -> {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(R.string.see_detail),
+                        color = Color.Black,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.clickable { onSeeDetail() }
+                    )
+                }
+            }
+            (OrderStatus.DONE.code) -> {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = stringResource(R.string.reorder),
+                        color = Color(0xFF074F0B),
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.clickable { onReorder() }
+                    )
+                    Divider(
+                        color = Color.LightGray,
+                        modifier = Modifier
+                            .height(20.dp)
+                            .width(1.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.review),
+                        color = Color.Black,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.clickable { onReview() }
+                    )
+                }
+            }
+            (OrderStatus.CANCELLED.code) -> {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = stringResource(R.string.reorder),
+                        color = Color(0xFF074F0B),
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.clickable { onReorder() }
+                    )
+                    Divider(
+                        color = Color.LightGray,
+                        modifier = Modifier
+                            .height(20.dp)
+                            .width(1.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.see_detail),
+                        color = Color.Black,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.clickable { onSeeDetail() }
+                    )
+                }
+            }
         }
     }
 }

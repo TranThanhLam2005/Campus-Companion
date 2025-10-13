@@ -51,6 +51,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -114,7 +115,7 @@ fun NearbyMapSection(modifier: Modifier = Modifier) {
             .padding(top = 16.dp, start = 16.dp, end = 16.dp)
         ) {
             Text(
-                "Recommended Places By Alumni",
+                text = stringResource(R.string.recommended_places_by_alumni),
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 8.dp)
@@ -265,9 +266,9 @@ fun PlaceCard(place: Place) {
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Icon(Icons.Default.Directions, contentDescription = "Directions", modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.Directions, contentDescription = stringResource(R.string.directions), modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Show Path", fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                    Text(stringResource(R.string.show_path), fontSize = 12.sp, fontWeight = FontWeight.Medium)
                 }
             }
         }
@@ -278,10 +279,10 @@ fun PlaceCard(place: Place) {
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { showDialog = false }) {
-                    Text("Close")
+                    Text(stringResource(R.string.close))
                 }
             },
-            title = { Text("Path to ${place.name}", fontSize = 16.sp) },
+            title = { Text(stringResource(R.string.path_to, place.name), fontSize = 16.sp) },
             text = {
                 Box(modifier = Modifier.height(500.dp)) {
                     // Your mini-map goes here
@@ -401,7 +402,7 @@ fun ShowDirectionMap(place: Place) {
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Request Location Permission", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Text(stringResource(R.string.request_location_permission), fontSize = 14.sp, fontWeight = FontWeight.Medium)
                 }
             }else{
                 Text(
@@ -461,4 +462,3 @@ fun decodePolyline(encoded: String): List<LatLng> {
 
     return poly
 }
-

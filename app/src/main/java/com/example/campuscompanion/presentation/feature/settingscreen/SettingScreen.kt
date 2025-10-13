@@ -41,11 +41,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.campuscompanion.R
 
 @Composable
 fun SettingScreen(
@@ -74,14 +76,14 @@ fun SettingScreen(
             ) {
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = stringResource(R.string.back),
                     tint = Color.Black,
                     modifier = Modifier.clickable {
                         navController.popBackStack()
                     }
                 )
                 Text(
-                    text = "Setting Account",
+                    text = stringResource(R.string.setting_account),
                     color = Color.Black,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
@@ -89,7 +91,7 @@ fun SettingScreen(
             }
             Icon(
                 imageVector = Icons.Filled.ChatBubbleOutline,
-                contentDescription = "Chat",
+                contentDescription = stringResource(R.string.chat),
                 tint = Color.Black,
                 modifier = Modifier.clickable {
                     isChatBoxOpen = true
@@ -105,44 +107,44 @@ fun SettingScreen(
                 )
             }
         }
-        Text("Account",
+        Text(stringResource(R.string.account),
             color = Color.Gray,
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
         )
-        SettingOption(label = "Change User Name", onClick = {})
-        SettingOption(label = "Change Password", onClick = {})
-        SettingOption(label = "Change Phone Number", onClick = {})
-        SettingOption(label = "Delete Account", onClick = {})
+        SettingOption(label = stringResource(R.string.change_user_name), onClick = {})
+        SettingOption(label = stringResource(R.string.change_password), onClick = {})
+        SettingOption(label = stringResource(R.string.change_phone_number), onClick = {})
+        SettingOption(label = stringResource(R.string.delete_account), onClick = {})
 
-        Text("Payment",
+        Text(stringResource(R.string.payment),
             color = Color.Gray,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
         )
-        SettingOption(label = "Add Payment Method", onClick = {})
-        SettingOption(label = "Payment History", onClick = {})
+        SettingOption(label = stringResource(R.string.add_payment_method), onClick = {})
+        SettingOption(label = stringResource(R.string.payment_history), onClick = {})
 
-        Text("Setting",
+        Text(stringResource(R.string.setting),
             color = Color.Gray,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
         )
-        SettingOption(label = "Setting Chat", onClick = {})
-        SettingOption(label = "Setting Notification", onClick = {})
-        SettingOption(label = "Language", onClick = {})
+        SettingOption(label = stringResource(R.string.setting_chat), onClick = {})
+        SettingOption(label = stringResource(R.string.setting_notification), onClick = {})
+        SettingOption(label = stringResource(R.string.language), onClick = {})
 
-        Text("Support",
+        Text(stringResource(R.string.support),
             color = Color.Gray,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
         )
-        SettingOption(label = "About Us", onClick = {})
-        SettingOption(label = "Help Center", onClick = {})
+        SettingOption(label = stringResource(R.string.about_us), onClick = {})
+        SettingOption(label = stringResource(R.string.help_center), onClick = {})
 
         Spacer(modifier = Modifier.height(20.dp))
         OutlinedButton(
@@ -159,7 +161,7 @@ fun SettingScreen(
             ),
         ) {
             Text(
-                text = "Change Account / Logout",
+                text = stringResource(R.string.change_account_logout),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -183,7 +185,7 @@ fun SettingOption(label: String, onClick: () -> Unit){
         Text(label, color = Color.Black, fontSize = 13.sp, fontWeight = FontWeight.Light)
         Icon(
             imageVector = Icons.Outlined.ArrowForwardIos,
-            contentDescription = "Arrow Right",
+            contentDescription = stringResource(R.string.arrow_right),
             tint = Color.Black,
             modifier = Modifier.size(18.dp)
         )
@@ -197,12 +199,12 @@ fun ChatDialog(onClose: () -> Unit, message: String, onMessageChange: (String) -
         confirmButton = {},
         dismissButton = {
             TextButton(onClick = onClose) {
-                Text("Close", color = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.close), color = MaterialTheme.colorScheme.primary)
             }
         },
         title = {
             Text(
-                text = "🗨️ Chat Support",
+                text = stringResource(R.string.chat_support),
                 color = MaterialTheme.colorScheme.primary,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
@@ -225,7 +227,7 @@ fun ChatDialog(onClose: () -> Unit, message: String, onMessageChange: (String) -
                         .padding(12.dp)
                 ) {
                     Text(
-                        text = "Welcome to the chat! How can I assist you today?",
+                        text = stringResource(R.string.chat_welcome),
                         color = Color.DarkGray,
                         fontSize = 16.sp
                     )
@@ -240,7 +242,7 @@ fun ChatDialog(onClose: () -> Unit, message: String, onMessageChange: (String) -
                     OutlinedTextField(
                         value = message,
                         onValueChange = onMessageChange,
-                        placeholder = { Text("Write reply...", color = Color.Gray) },
+                        placeholder = { Text(stringResource(R.string.write_reply), color = Color.Gray) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(24.dp),
                         textStyle = TextStyle(
@@ -259,7 +261,7 @@ fun ChatDialog(onClose: () -> Unit, message: String, onMessageChange: (String) -
                         ),
                         trailingIcon = {
                             IconButton(onClick = onSend) {
-                                Icon(Icons.Outlined.Send, contentDescription = "Send")
+                                Icon(Icons.Outlined.Send, contentDescription = stringResource(R.string.send))
                             }
                         }
                     )

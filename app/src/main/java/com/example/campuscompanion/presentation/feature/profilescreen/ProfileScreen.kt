@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -103,14 +104,14 @@ fun ProfileScreen(modifier: Modifier = Modifier, navController: NavController) {
                     .padding(top = 50.dp)
             ){
                 Text(
-                    text = "Account",
+                    text = stringResource(R.string.account),
                     color = Color.White,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                 )
                 Icon(
                     imageVector = Icons.Outlined.Settings,
-                    contentDescription = "Setting",
+                    contentDescription = stringResource(R.string.setting),
                     tint = Color.White,
                     modifier = Modifier
                         .size(30.dp)
@@ -176,24 +177,24 @@ fun ProfileScreen(modifier: Modifier = Modifier, navController: NavController) {
                     ) {
                         InfoCard(
                             icon = Icons.Outlined.Fastfood,
-                            text = "Order history",
+                            text = stringResource(R.string.order_history),
                             onClick = {
                                 navController.navigate(Screen.OrderHistoryScreen.route)
                             }
                         )
                         InfoCard(
                             icon = Icons.Outlined.EventNote,
-                            text = "Event history",
+                            text = stringResource(R.string.event_history),
                             onClick = { }
                         )
                         InfoCard(
                             icon = Icons.Outlined.Payment,
-                            text = "Payment history",
+                            text = stringResource(R.string.payment_history),
                             onClick = { }
                         )
                         InfoCard(
                             icon = Icons.Outlined.RateReview,
-                            text = "Review",
+                            text = stringResource(R.string.review),
                             onClick = { }
                         )
                     }
@@ -207,22 +208,22 @@ fun ProfileScreen(modifier: Modifier = Modifier, navController: NavController) {
                     ) {
                         InfoOption(
                             icon = Icons.Outlined.Info,
-                            text = "About Us",
+                            text = stringResource(R.string.about_us),
                             onClick = { infoDialogType = "about" }
                         )
                         InfoOption(
                             icon = Icons.Outlined.Policy,
-                            text = "Privacy Policy",
+                            text = stringResource(R.string.privacy_policy),
                             onClick = { infoDialogType = "privacy" }
                         )
                         InfoOption(
                             icon = Icons.Outlined.Terminal,
-                            text = "Terms of Service",
+                            text = stringResource(R.string.terms_of_service),
                             onClick = { infoDialogType = "terms" }
                         )
                         InfoOption(
                             icon = Icons.Outlined.HelpOutline,
-                            text = "Help & Support",
+                            text = stringResource(R.string.help_support),
                             onClick = { infoDialogType = "help" }
                         )
                     }
@@ -233,10 +234,10 @@ fun ProfileScreen(modifier: Modifier = Modifier, navController: NavController) {
                 // ℹ️ Info Dialog (About / Policy / Terms / Help)
                 if (infoDialogType != null) {
                     val (title, content) = when (infoDialogType) {
-                        "about" -> "About Us" to "Campus Companion is a student-centered app designed to simplify campus life — from organizing events and study groups to managing your personal schedule."
-                        "privacy" -> "Privacy Policy" to "We respect your privacy. Your data is securely stored and will never be shared without consent. Read the full policy on our website."
-                        "terms" -> "Terms of Service" to "By using this app, you agree to abide by our community guidelines and academic integrity standards."
-                        "help" -> "Help & Support" to "For support, contact us at: support@campuscompanion.com"
+                        "about" -> stringResource(R.string.about_us) to stringResource(R.string.about_us_content)
+                        "privacy" -> stringResource(R.string.privacy_policy) to stringResource(R.string.privacy_policy_content)
+                        "terms" -> stringResource(R.string.terms_of_service) to stringResource(R.string.terms_of_service_content)
+                        "help" -> stringResource(R.string.help_support) to stringResource(R.string.help_support_content)
                         else -> "" to ""
                     }
 
@@ -244,7 +245,7 @@ fun ProfileScreen(modifier: Modifier = Modifier, navController: NavController) {
                         onDismissRequest = { infoDialogType = null },
                         confirmButton = {
                             TextButton(onClick = { infoDialogType = null }) {
-                                Text("OK", color = MaterialTheme.colorScheme.primary)
+                                Text(stringResource(R.string.ok), color = MaterialTheme.colorScheme.primary)
                             }
                         },
                         title = {
@@ -302,5 +303,3 @@ fun InfoCard(icon: ImageVector, text: String, onClick: () -> Unit) {
         Text(text, color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Normal)
     }
 }
-
-

@@ -21,13 +21,11 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Send
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -45,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -54,21 +53,30 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import com.example.campuscompanion.R
 import com.example.campuscompanion.Screen
 import com.example.campuscompanion.domain.model.Club
 
-
+data class ClubType(
+    val code: String, // for logic
+    val titleRes: Int // for display
+)
 @Composable
 fun ClubScreen(modifier: Modifier = Modifier, navController: NavController) {
     val viewModel: ClubViewModel = hiltViewModel()
     val joinedState by viewModel.clubs.collectAsState()
     val remainingState by viewModel.remainingClubs.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    val types = listOf("All", "Academic", "Social", "Sport", "Business")
-
+    val clubTypes = listOf(
+        ClubType("All", R.string.club_type_all),
+        ClubType("Academic", R.string.club_type_academic),
+        ClubType("Social", R.string.club_type_social),
+        ClubType("Sport", R.string.club_type_sport),
+        ClubType("Business", R.string.club_type_business)
+    )
     var isSearching by remember {mutableStateOf(false)}
     var searchQuery by remember { mutableStateOf("") }
-    var selectedType by remember { mutableStateOf("All") }
+    var selectedType by remember { mutableStateOf(clubTypes.first()) }
     var typeDropdownExpanded by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         viewModel.loadJoinedClubs()
@@ -89,7 +97,7 @@ fun ClubScreen(modifier: Modifier = Modifier, navController: NavController) {
         val allClubs = remainingState
         val filteredClubs = allClubs.filter { club ->
             val matchesQuery = club.name.contains(searchQuery, ignoreCase = true)
-            val matchesType = selectedType == "All" || club.type == selectedType
+            val matchesType = selectedType.code == "All" || club.type == selectedType.code
             matchesQuery && matchesType
         }
 
@@ -100,9 +108,9 @@ fun ClubScreen(modifier: Modifier = Modifier, navController: NavController) {
                 .padding(30.dp)
         ){
             Text(
-                text = "Joined Clubs",
-                color = Color(0xFFE2F163),
+                text = stringResource(R.string.joined_clubs),
                 textAlign = TextAlign.Center,
+                color = Color.White,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 20.dp, bottom = 20.dp)
@@ -115,8 +123,8 @@ fun ClubScreen(modifier: Modifier = Modifier, navController: NavController) {
                 verticalAlignment = Alignment.CenterVertically
             ){
                 Text(
-                    text = "All Clubs",
-                    color = Color(0xFFE2F163),
+                    text = stringResource(R.string.all_clubs),
+                    color = Color.White,
                     textAlign = TextAlign.Center,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
@@ -131,7 +139,7 @@ fun ClubScreen(modifier: Modifier = Modifier, navController: NavController) {
                             }
                         },
                     imageVector = Icons.Outlined.Search,
-                    contentDescription = "Search",
+                    contentDescription = stringResource(R.string.search),
                     tint = Color.White,
 
                 )
@@ -145,7 +153,7 @@ fun ClubScreen(modifier: Modifier = Modifier, navController: NavController) {
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
-                        placeholder = { Text("Search...", color = Color.Gray) },
+                        placeholder = { Text(stringResource(R.string.search_placeholder), color = Color.Gray) },
                         modifier = Modifier
                             .weight(1f)
                             .padding(end = 30.dp),
@@ -176,16 +184,16 @@ fun ClubScreen(modifier: Modifier = Modifier, navController: NavController) {
                                 containerColor = Color.White
                             )
                         ) {
-                            Text(selectedType, color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                            Text(stringResource(selectedType.titleRes), color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                         }
 
                         DropdownMenu(
                             expanded = typeDropdownExpanded,
                             onDismissRequest = { typeDropdownExpanded = false }
                         ) {
-                            types.forEach { type ->
+                            clubTypes.forEach { type ->
                                 DropdownMenuItem(
-                                    text = { Text(type) },
+                                    text = { Text(stringResource(type.titleRes)) },
                                     onClick = {
                                         selectedType = type
                                         typeDropdownExpanded = false
@@ -271,4 +279,3 @@ fun ClubCard(
         )
     }
 }
-

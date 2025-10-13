@@ -371,8 +371,10 @@ fun EventCard(event: Event, navController: NavController, club: Club) {
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold
                 )
+                val formatted = formatTimestamp(context, event.date)
+
                 Text(
-                    formatTimestamp(event.date),
+                    formatted,
                     color = Color.White,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal

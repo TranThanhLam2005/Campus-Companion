@@ -4,10 +4,10 @@ import com.example.campuscompanion.domain.model.Order
 import com.example.campuscompanion.domain.repository.OrderRepository
 import javax.inject.Inject
 
-class GetOrdersUseCase @Inject constructor(
+class GetOrderUseCase @Inject constructor(
     private val orderRepository: OrderRepository
-) {
-    suspend operator fun invoke(userId: String, status: String): List<Order> {
-        return orderRepository.getOrdersByUserId(userId, status)
+){
+    suspend operator fun invoke(orderId: String): Order {
+        return orderRepository.getOrderDetail(orderId)
     }
 }

@@ -54,19 +54,44 @@ class OrderRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getOrdersByUserId(userId: String): List<Order> {
+    override suspend fun getOrderDetail(orderId: String): Order {
         return try {
-            val snapshot = firestore.collection("orders")
+            val orderRef = firestore.collection("orders").document(orderId)
+            val snapshot = orderRef.get().await()
+            snapshot.toObject(Order::class.java) ?: throw Exception("Order not found")
+        } catch (e: Exception) {
+            Log.e("OrderRepository", "Error fetching order detail", e)
+            throw e
+        }
+    }
+
+    override suspend fun getOrdersByUserId(userId: String, status: String): List<Order> {
+        return try {
+            var query = firestore.collection("orders")
                 .whereEqualTo("userId", userId)
-                .get()
-                .await()
+
+            if (status != null) {
+                query = query.whereEqualTo("status", status)
+            }
+
+            val snapshot = query.get().await()
 
             snapshot.documents.mapNotNull { it.toObject(Order::class.java) }
         } catch (e: Exception) {
-            Log.e("OrderRepository", "Error fetching orders for user $userId", e)
+            Log.e("OrderRepository", "Error fetching orders for user $userId with status $status", e)
             emptyList()
         }
     }
 
 
+    override suspend fun updateStatus(orderId: String, newStatus: String) {
+        try {
+            val orderRef = firestore.collection("orders").document(orderId)
+            orderRef.update("status", newStatus).await()
+            Log.d("OrderRepository", "✅ Order status updated successfully")
+        } catch (e: Exception) {
+            Log.e("OrderRepository", "❌ Failed to update order status", e)
+            throw e
+        }
+    }
 }

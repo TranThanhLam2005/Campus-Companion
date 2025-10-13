@@ -37,6 +37,7 @@ import com.example.campuscompanion.presentation.feature.clubscreen.ClubScreen
 import com.example.campuscompanion.presentation.feature.clubscreen.ClubScreenDetail
 import com.example.campuscompanion.presentation.feature.eventscreen.EventDetailScreen
 import com.example.campuscompanion.presentation.feature.homescreen.HomeScreen
+import com.example.campuscompanion.presentation.feature.orderhistoryscreen.OrderDetailScreen
 import com.example.campuscompanion.presentation.feature.orderhistoryscreen.OrderHistoryScreen
 import com.example.campuscompanion.presentation.feature.profilescreen.ProfileScreen
 import com.example.campuscompanion.presentation.feature.settingscreen.SettingScreen
@@ -102,6 +103,11 @@ fun AppNavHost(
         }
         composable(Screen.OrderHistoryScreen.route){
             OrderHistoryScreen(navController = navController)
+        }
+        composable(Screen.OrderDetailScreen.route+"/{orderId}"){
+            backStackEntry ->
+            val orderId = backStackEntry.arguments?.getString("orderId") ?: return@composable
+            OrderDetailScreen(navController = navController, orderId = orderId)
         }
     }
 }

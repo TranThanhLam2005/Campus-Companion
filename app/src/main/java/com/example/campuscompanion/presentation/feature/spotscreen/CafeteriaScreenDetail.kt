@@ -61,6 +61,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -69,6 +70,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import com.example.campuscompanion.R
 import com.example.campuscompanion.domain.model.Food
 import com.example.campuscompanion.domain.model.FoodOrder
 import com.example.campuscompanion.domain.model.Order
@@ -192,17 +194,17 @@ fun CafeteriaScreenDetail(cafeteriaId: String, navController: NavController) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ){
+                ) {
                     Icon(
                         imageVector = Icons.Filled.ArrowBack,
-                        contentDescription = "Back",
+                        contentDescription = stringResource(id = R.string.back),
                         tint = Color.Black,
-                        modifier = Modifier.clickable{
+                        modifier = Modifier.clickable {
                             navController.popBackStack()
                         }
                     )
                     Text(
-                        text = "Cafeteria View",
+                        text = stringResource(id = R.string.cafeteria_view),
                         color = Color.Black,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
@@ -333,19 +335,19 @@ fun CafeteriaScreenDetail(cafeteriaId: String, navController: NavController) {
                 modifier = Modifier
                     .clip(RoundedCornerShape(20.dp))
                     .background(Color(0xFFF2F4F7)),
-            ){
-                if( cafeteria?.foodTypeList?.find { it.name == selected }?.foodList.isNullOrEmpty()) {
+            ) {
+                if (cafeteria?.foodTypeList?.find { it.name == selected }?.foodList.isNullOrEmpty()) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "No food available in this category",
+                            text = stringResource(id = R.string.no_food_in_category),
                             fontSize = 16.sp,
                             color = Color.Gray
                         )
                     }
-                }else{
+                } else {
                     FoodCardGrid(
                         modifier = Modifier.padding(10.dp),
                         foodList = cafeteria?.foodTypeList?.find { it.name == selected }?.foodList ?: emptyList(),
@@ -375,7 +377,7 @@ fun CafeteriaScreenDetail(cafeteriaId: String, navController: NavController) {
                     verticalAlignment = Alignment.CenterVertically
                 ){
                     Text(
-                        text = "Name",
+                        text = stringResource(id = R.string.name),
                         fontWeight = FontWeight.Light,
                         fontSize = 20.sp
                     )
@@ -399,7 +401,7 @@ fun CafeteriaScreenDetail(cafeteriaId: String, navController: NavController) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    placeholder = { Text("Enter full name") },
+                    placeholder = { Text(stringResource(id = R.string.enter_full_name)) },
                     shape = RoundedCornerShape(50.dp),
                     modifier = Modifier
                         .fillMaxWidth(),
@@ -414,7 +416,7 @@ fun CafeteriaScreenDetail(cafeteriaId: String, navController: NavController) {
                 OutlinedTextField(
                     value = takenote,
                     onValueChange = { takenote = it },
-                    placeholder = { Text("Enter note") },
+                    placeholder = { Text(stringResource(id = R.string.enter_note)) },
                     shape = RoundedCornerShape(50.dp),
                     modifier = Modifier
                         .fillMaxWidth(),
@@ -435,7 +437,7 @@ fun CafeteriaScreenDetail(cafeteriaId: String, navController: NavController) {
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ){
                         Text(
-                            text = "Total:",
+                            text = stringResource(id = R.string.total),
                             fontWeight = FontWeight.Light,
                             fontSize = 20.sp
                         )
@@ -451,14 +453,14 @@ fun CafeteriaScreenDetail(cafeteriaId: String, navController: NavController) {
                         }
                     ){
                         Text(
-                            text = "Breakdown",
+                            text = stringResource(id = R.string.breakdown),
                             fontWeight = FontWeight.Light,
                             fontSize = 20.sp,
                             color = Color(0xFF902A1D)
                         )
                         Icon(
                             imageVector = Icons.Outlined.ArrowRight,
-                            contentDescription = "Toggle breakdown",
+                            contentDescription = stringResource(id = R.string.breakdown),
                             tint = Color.Black,
                             modifier = Modifier.rotate(rotationAngle)
                         )
@@ -477,7 +479,7 @@ fun CafeteriaScreenDetail(cafeteriaId: String, navController: NavController) {
                     }
                 }
                 ButtonUI(
-                    text ="PlaceOrder",
+                    text = stringResource(id = R.string.place_order),
                     onClick = {
                         viewModel.addOrder(cafeteriaId, cartItems, "Pending", total, takenote, name)
                         showCart = false
@@ -508,7 +510,7 @@ fun CafeteriaScreenDetail(cafeteriaId: String, navController: NavController) {
             },
             title = {
                 Text(
-                    text = "Order Placed Successfully 🎉",
+                    text = stringResource(id = R.string.order_placed_success),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.fillMaxWidth(),
@@ -537,14 +539,14 @@ fun CafeteriaScreenDetail(cafeteriaId: String, navController: NavController) {
                     }
 
                     Text(
-                        text = "Order #${lastOrderId}",
+                        text = stringResource(id = R.string.order_number, lastOrderId),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color.Black
                     )
 
                     Text(
-                        text = "Please keep that number!\nYou’ll receive a notification when your food is ready.",
+                        text = stringResource(id = R.string.order_keep_number),
                         fontSize = 14.sp,
                         lineHeight = 20.sp,
                         color = Color.Gray,

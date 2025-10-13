@@ -1,5 +1,6 @@
 package com.example.campuscompanion.presentation.feature.spotscreen
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -41,12 +42,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import com.example.campuscompanion.R
 import com.example.campuscompanion.domain.model.Room
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
@@ -95,7 +98,7 @@ fun StudySection(modifier: Modifier = Modifier) {
                 modifier = Modifier.size(32.dp)
             )
             Text(
-                "Available Rooms:",
+                text = stringResource(R.string.available_rooms),
                 color = Color.White,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.SemiBold
@@ -194,8 +197,10 @@ fun RoomDetail(
                         fontWeight = FontWeight.Light
                     )
                     Spacer(modifier = Modifier.height(6.dp))
+                    val formatted = formatTimestamp(context, room.availableTime)
+
                     Text(
-                        formatTimestamp(room.availableTime),
+                        formatted,
                         color = Color.White,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Light
@@ -309,9 +314,9 @@ fun RoomCardGrid(
     }
 }
 
-fun formatTimestamp(timestamp: Timestamp?): String {
+fun formatTimestamp(context: Context, timestamp: Timestamp?): String {
     return timestamp?.toDate()?.let {
         val sdf = SimpleDateFormat("MMM dd, yyyy - HH:mm", Locale.getDefault())
         sdf.format(it)
-    } ?: "No time"
+    } ?: context.getString(R.string.no_time)
 }
