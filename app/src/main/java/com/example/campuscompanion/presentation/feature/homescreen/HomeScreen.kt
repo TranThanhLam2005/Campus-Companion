@@ -42,6 +42,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.example.campuscompanion.R
+import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -94,7 +96,7 @@ fun HomeScreen(
         OutlinedTextField(
             value = comment,
             onValueChange = { comment = it },
-            placeholder = { Text("Write reply...", color = Color.Gray) },
+            placeholder = { Text(stringResource(R.string.write_reply), color = Color.Gray) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp),
@@ -133,7 +135,7 @@ fun HomeScreen(
                         comment = ""
                     }
                 }) {
-                    Icon(Icons.Outlined.Send, contentDescription = "Send")
+                    Icon(Icons.Outlined.Send, contentDescription = stringResource(R.string.send))
                 }
             }
 
@@ -291,7 +293,7 @@ fun CommentSection(comments: List<String>) {
             .heightIn(min = 150.dp, max = 250.dp)
     ) {
         Text(
-            text = "Comments",
+            text = stringResource(R.string.comments),
             fontSize = 22.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color.Black,
@@ -300,7 +302,7 @@ fun CommentSection(comments: List<String>) {
 
         if (comments.isEmpty()) {
             Text(
-                text = "No comments yet. Be the first!",
+                text = stringResource(R.string.no_comments_yet),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Light,
                 color = Color.Gray
@@ -338,7 +340,7 @@ fun CommentSection(comments: List<String>) {
                                     color = Color.Black
                                 )
                                 Text(
-                                    text = "Just now", // You can replace with real timestamp later
+                                    text = stringResource(R.string.just_now), // You can replace with real timestamp later
                                     fontSize = 12.sp,
                                     color = Color.Gray
                                 )

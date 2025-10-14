@@ -8,6 +8,7 @@ import com.example.campuscompanion.data.repository.OrderRepositoryImpl
 import com.example.campuscompanion.data.repository.PlaceRepositoryImpl
 import com.example.campuscompanion.data.repository.RoomRepositoryImpl
 import com.example.campuscompanion.data.repository.UserRepositoryImpl
+import com.example.campuscompanion.data.repository.CartRepositoryImpl
 import com.example.campuscompanion.domain.repository.CafeteriaRepository
 import com.example.campuscompanion.domain.repository.ClubRepository
 import com.example.campuscompanion.domain.repository.EventRepository
@@ -16,6 +17,7 @@ import com.example.campuscompanion.domain.repository.OrderRepository
 import com.example.campuscompanion.domain.repository.PlaceRepository
 import com.example.campuscompanion.domain.repository.RoomRepository
 import com.example.campuscompanion.domain.repository.UserRepository
+import com.example.campuscompanion.domain.repository.CartRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -73,4 +75,10 @@ abstract class RepositoryModule {
     abstract fun bindOrderRepository(
         impl: OrderRepositoryImpl
     ): OrderRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCartRepository(
+        impl: CartRepositoryImpl
+    ): CartRepository
 }

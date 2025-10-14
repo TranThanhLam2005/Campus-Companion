@@ -37,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,6 +45,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import com.example.campuscompanion.R
 import com.example.campuscompanion.domain.model.Event
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
@@ -91,14 +93,14 @@ fun EventDetailScreen(
             ){
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = stringResource(id = R.string.event_back),
                     tint = Color.Black,
                     modifier = Modifier.clickable{
                         navController.popBackStack()
                     }
                 )
                 Text(
-                    text = "Club View",
+                    text = stringResource(id = R.string.event_club_view),
                     color = Color.Black,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
@@ -126,7 +128,7 @@ fun EventDetailScreen(
                 if(!cleanUrl.isNullOrBlank() ) {
                     Image(
                         painter = painter,
-                        contentDescription = event.name,
+                        contentDescription = event?.name ?: stringResource(id = R.string.event_title),
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
@@ -137,7 +139,7 @@ fun EventDetailScreen(
                             .background(Color.Gray),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("No Image", color = Color.White)
+                        Text(stringResource(id = R.string.event_no_image), color = Color.White)
                     }
                 }
             }
@@ -146,7 +148,7 @@ fun EventDetailScreen(
 
             // Event Name
             Text(
-                text = event?.name ?: "Event Title",
+                text = event?.name ?: stringResource(id = R.string.event_title),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -159,18 +161,18 @@ fun EventDetailScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.CalendarToday, contentDescription = "Date", tint = Color.Gray)
+                    Icon(Icons.Default.CalendarToday, contentDescription = stringResource(id = R.string.event_date), tint = Color.Gray)
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = formatDate(event?.date),
+                        text = formatDate(event?.date, stringResource(id = R.string.event_date_unknown)),
                         color = Color.Gray
                     )
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Place, contentDescription = "Location", tint = Color.Gray)
+                    Icon(Icons.Default.Place, contentDescription = stringResource(id = R.string.event_location), tint = Color.Gray)
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = event?.location ?: "Location Unknown", color = Color.Gray)
+                    Text(text = event?.location ?: stringResource(id = R.string.event_location_unknown), color = Color.Gray)
                 }
             }
 
@@ -178,13 +180,13 @@ fun EventDetailScreen(
 
             // Description
             Text(
-                text = "About the event",
+                text = stringResource(id = R.string.event_about),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = event?.description ?: "No description provided for this event.",
+                text = event?.description ?: stringResource(id = R.string.event_no_description),
                 style = MaterialTheme.typography.bodyMedium,
                 lineHeight = 20.sp
             )
@@ -199,13 +201,15 @@ fun EventDetailScreen(
                     .height(50.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Register Now")
+                Text(stringResource(id = R.string.event_register))
             }
         }
     }
 }
-fun formatDate(timestamp: Timestamp?): String {
+
+@Composable
+fun formatDate(timestamp: Timestamp?, unknown: String): String {
     return timestamp?.toDate()?.let {
         SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(it)
-    } ?: "Date Unknown"
+    } ?: unknown
 }

@@ -20,16 +20,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.campuscompanion.R
 
 
-enum class SpotCategory (val title:String){
-    STUDY("Study Spots"),
-    CAFE("Cafeteria"),
-    MAP ("Nearby Map")
+enum class SpotCategory(val titleRes: Int) {
+    STUDY(R.string.spot_category_study),
+    CAFE(R.string.spot_category_cafe),
+    MAP(R.string.spot_category_map)
 }
 
 @Composable
@@ -45,7 +47,7 @@ fun SpotScreen(modifier: Modifier = Modifier, navController: NavController) {
             .padding(bottom = 120.dp),
     ){
         Text(
-            text = "Campus Spots",
+            text = stringResource(R.string.spot_screen_title),
             color = Color.White,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
@@ -61,7 +63,7 @@ fun SpotScreen(modifier: Modifier = Modifier, navController: NavController) {
                     onClick = { selected = category },
                     label = {
                         Text(
-                            text = category.title,
+                            text = stringResource(category.titleRes),
                             color = if(selected == category) Color.White else Color.Black,
                             fontSize = 16.sp,
                             modifier = Modifier.padding(vertical = 12.dp)
@@ -84,4 +86,3 @@ fun SpotScreen(modifier: Modifier = Modifier, navController: NavController) {
         }
     }
 }
-

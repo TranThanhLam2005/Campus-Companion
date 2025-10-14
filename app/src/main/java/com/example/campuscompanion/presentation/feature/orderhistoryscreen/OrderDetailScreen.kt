@@ -1,5 +1,11 @@
 package com.example.campuscompanion.presentation.feature.orderhistoryscreen
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,20 +22,27 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
@@ -44,6 +57,10 @@ import com.example.campuscompanion.R
 import com.example.campuscompanion.domain.model.Order
 import java.text.SimpleDateFormat
 import java.util.Locale
+
+// Import status enum for consistent codes
+import com.example.campuscompanion.presentation.feature.orderhistoryscreen.OrderStatus
+import com.example.campuscompanion.Screen
 
 @Composable
 fun OrderDetailScreen(
@@ -110,11 +127,16 @@ fun OrderDetailScreen(
                 OrderInfoCard(order)
             }
 
-            // Buttons
+            // Buttons (dynamic by status)
             item {
                 ActionButtons(
-                    onReviewClick = { /* TODO: Navigate to review screen */ },
-                    onReorderClick = { /* TODO: trigger reorder */ }
+                    status = order.status,
+                    onCancel = { viewModel.cancelOrder(order.id) },
+                    onReorder = {
+                        viewModel.reorder(order) { newId ->
+                            navController.navigate(Screen.OrderDetailScreen.route + "/$newId")
+                        }
+                    }
                 )
             }
         }
@@ -128,7 +150,7 @@ fun OrderDetailScreen(
 
 @Composable
 fun OrderSummaryCard(order: Order) {
-// Calculate totalDish correctly
+    // Calculate totalDish correctly
     val totalDish = remember(order) { order.foodOrderList.sumOf { it.quantity } }
     Card(
         modifier = Modifier
@@ -216,30 +238,94 @@ fun InfoRow(label: String, value: String) {
 
 @Composable
 fun ActionButtons(
-    onReviewClick: () -> Unit,
-    onReorderClick: () -> Unit
+    status: String,
+    onCancel: () -> Unit,
+    onReorder: () -> Unit
 ) {
-    Row(
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(
-            text = stringResource(R.string.reorder),
-            color = Color(0xFF074F0B),
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.clickable { onReorderClick() }
+    var showCancelDialog by remember { mutableStateOf(false) }
+    val infiniteTransition = rememberInfiniteTransition()
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.2f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(600, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
         )
-        Divider(
-            color = Color.LightGray,
-            modifier = Modifier
-                .height(20.dp)
-                .width(1.dp)
+    )
+    if (showCancelDialog) {
+        AlertDialog(
+            onDismissRequest = { showCancelDialog = false },
+            title = { Text(stringResource(R.string.cancel_order)) },
+            text = { Text(stringResource(R.string.cancel_order_confirm)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showCancelDialog = false
+                    onCancel()
+                }) {
+                    Text(stringResource(R.string.yes), color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCancelDialog = false }) {
+                    Text(stringResource(R.string.no))
+                }
+            }
         )
-        Text(
-            text = stringResource(R.string.review),
-            color = Color.Black,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.clickable { onReviewClick() }
-        )
+    }
+
+    when (status) {
+        OrderStatus.PENDING.code -> {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = stringResource(R.string.cancel_order),
+                    color = Color.Red,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.clickable { showCancelDialog = true }
+                )
+            }
+        }
+        OrderStatus.PROCESSING.code -> {
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Restaurant,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .scale(scale),
+                    tint = Color(0xFF044409)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.status_processing),
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFF044409)
+                )
+            }
+        }
+        OrderStatus.DONE.code, OrderStatus.CANCELLED.code -> {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = stringResource(R.string.reorder),
+                    color = Color(0xFF074F0B),
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.clickable { onReorder() }
+                )
+            }
+        }
+        else -> {
+            // No actions for unknown status
+        }
     }
 }

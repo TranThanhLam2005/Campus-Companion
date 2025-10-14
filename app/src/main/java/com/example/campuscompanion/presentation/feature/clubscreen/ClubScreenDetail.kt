@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.LinkOff
 import androidx.compose.material.icons.outlined.House
@@ -43,6 +44,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -52,6 +54,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.example.campuscompanion.Screen
+import com.example.campuscompanion.R
 import com.example.campuscompanion.domain.model.Club
 import com.example.campuscompanion.domain.model.Event
 import com.example.campuscompanion.generalUi.ButtonUI
@@ -109,15 +112,15 @@ fun ClubScreenDetail(modifier: Modifier = Modifier, clubId: String, navControlle
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.club_detail_back),
                             tint = Color.Black,
                             modifier = Modifier.clickable {
                                 navController.popBackStack()
                             }
                         )
                         Text(
-                            text = "Club View",
+                            text = stringResource(R.string.club_detail_title),
                             color = Color.Black,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
@@ -170,7 +173,7 @@ fun ClubScreenDetail(modifier: Modifier = Modifier, clubId: String, navControlle
                             fontWeight = FontWeight.SemiBold
                         )
                         ButtonUI(
-                            text = if (isFollow) "Unfollow" else "Follow",
+                            text = if (isFollow) stringResource(R.string.club_detail_unfollow) else stringResource(R.string.club_detail_follow),
                             backgroundColor = if (isFollow) Color.LightGray else Color(0xFF902A1D), // Unfollow = gray, Follow = red
                             textColor = if (isFollow) Color.Black else Color.White,
                             onClick = {
@@ -204,7 +207,7 @@ fun ClubScreenDetail(modifier: Modifier = Modifier, clubId: String, navControlle
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.LocationOn,
-                                contentDescription = club.location,
+                                contentDescription = stringResource(R.string.club_detail_location),
                                 tint = Color.Black,
                                 modifier = Modifier.size(28.dp)
                             )
@@ -234,7 +237,7 @@ fun ClubScreenDetail(modifier: Modifier = Modifier, clubId: String, navControlle
                     ) {
                         Icon(
                             imageVector = Icons.Filled.LinkOff,
-                            contentDescription = "Location",
+                            contentDescription = stringResource(R.string.club_detail_location),
                             tint = Color.Black,
                             modifier = Modifier.size(32.dp)
                         )
@@ -274,7 +277,7 @@ fun ClubScreenDetail(modifier: Modifier = Modifier, clubId: String, navControlle
                             modifier = Modifier.size(32.dp)
                         )
                         Text(
-                            "Upcoming Events:",
+                            stringResource(R.string.club_detail_upcoming_events),
                             color = Color.Black,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.SemiBold
@@ -289,7 +292,7 @@ fun ClubScreenDetail(modifier: Modifier = Modifier, clubId: String, navControlle
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "No upcoming events",
+                                text = stringResource(R.string.club_detail_no_upcoming_events),
                                 fontSize = 16.sp,
                                 color = Color.Gray
                             )
@@ -340,7 +343,7 @@ fun EventCard(event: Event, navController: NavController, club: Club) {
                     .background(Color.Gray),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No Image", color = Color.White)
+                Text(stringResource(R.string.club_detail_no_image), color = Color.White)
             }
         }
         Box(
@@ -383,7 +386,7 @@ fun EventCard(event: Event, navController: NavController, club: Club) {
 
             Icon(
                 imageVector = Icons.Outlined.Notifications,
-                contentDescription = "Notification",
+                contentDescription = stringResource(R.string.club_detail_notification),
                 tint = Color.White,
                 modifier = Modifier
                     .size(44.dp)

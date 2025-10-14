@@ -72,7 +72,7 @@ fun OrderHistoryScreen(
     val isLoading by viewModel.isLoading.collectAsState()
 
 
-// ✅ Trigger when 'selected' changes
+    // ✅ Trigger when 'selected' changes
     LaunchedEffect(selected) {
         viewModel.loadOrders(selected.code)
     }
@@ -194,6 +194,11 @@ fun OrderHistoryScreen(
                                 },
                                 onSeeDetail = {
                                     navController.navigate(Screen.OrderDetailScreen.route + "/${filteredOrders[index].order.id}")
+                                },
+                                onReorder = {
+                                    viewModel.reorder(filteredOrders[index].order) { newId ->
+                                        navController.navigate(Screen.OrderDetailScreen.route + "/$newId")
+                                    }
                                 }
                             )
                         }

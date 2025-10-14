@@ -7,6 +7,7 @@ import com.example.campuscompanion.domain.model.Order
 import com.example.campuscompanion.domain.usecase.GetCafeteriaUseCase
 import com.example.campuscompanion.domain.usecase.GetOrdersUseCase
 import com.example.campuscompanion.domain.usecase.UpdateOrderStatusUseCase
+import com.example.campuscompanion.domain.usecase.AddOrderUseCase
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +20,8 @@ import javax.inject.Inject
 class OrderHistoryViewModel @Inject constructor(
     private val getOrdersUseCase: GetOrdersUseCase,
     private val getCafeteriaUseCase: GetCafeteriaUseCase,
-    private val updateOrderStatusUseCase: UpdateOrderStatusUseCase
+    private val updateOrderStatusUseCase: UpdateOrderStatusUseCase,
+    private val addOrderUseCase: AddOrderUseCase
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
@@ -56,7 +58,25 @@ class OrderHistoryViewModel @Inject constructor(
             _isLoading.value = false
         }
     }
+
+    fun reorder(oldOrder: Order, onSuccess: (String) -> Unit = {}) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val newOrder = oldOrder.copy(
+                    id = "", // let repository generate a new ID
+                    status = OrderStatus.PENDING.code,
+                    orderedAt = null // repository will set Timestamp.now()
+                )
+                val newId = addOrderUseCase(newOrder)
+                onSuccess(newId)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
 }
+
 data class OrderWithCafeteria(
     val order: Order,
     val cafeteria: Cafeteria? = null
