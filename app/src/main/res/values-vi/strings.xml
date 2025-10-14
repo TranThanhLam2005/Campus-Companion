@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">Bạn trường tôi</string>
     <string name="back">Quay lại</string>
     <string name="order_detail">Chi tiết đơn hàng</string>
     <string name="order_summary">Tóm tắt đơn hàng</string>
