@@ -121,4 +121,7 @@
     <string name="event_no_description">Không có mô tả cho sự kiện này.</string>
     <string name="event_register">Đăng ký ngay</string>
     <string name="event_date_unknown">Không rõ ngày</string>
+    <string name="event_registered">Đã đăng ký</string>
+    <string name="event_history_empty">Bạn chưa tham gia sự kiện nào.</string>
+    <string name="loading_generic">Đang tải...</string>
 </resources>

@@ -121,4 +121,7 @@
     <string name="event_no_description">No description provided for this event.</string>
     <string name="event_register">Register Now</string>
     <string name="event_date_unknown">Date Unknown</string>
+    <string name="event_registered">Registered</string>
+    <string name="event_history_empty">You have not participated in any events yet.</string>
+    <string name="loading_generic">Loading...</string>
 </resources>

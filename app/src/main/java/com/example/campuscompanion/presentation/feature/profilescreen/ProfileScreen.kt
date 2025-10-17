@@ -185,7 +185,9 @@ fun ProfileScreen(modifier: Modifier = Modifier, navController: NavController) {
                         InfoCard(
                             icon = Icons.Outlined.EventNote,
                             text = stringResource(R.string.event_history),
-                            onClick = { }
+                            onClick = {
+                                navController.navigate(Screen.EventHistoryScreen.route)
+                            }
                         )
                         InfoCard(
                             icon = Icons.Outlined.Payment,

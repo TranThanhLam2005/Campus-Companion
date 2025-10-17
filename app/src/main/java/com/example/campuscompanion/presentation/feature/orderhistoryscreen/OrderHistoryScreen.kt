@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -79,8 +80,8 @@ fun OrderHistoryScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(bottom = 110.dp, top = 60.dp)
-            .background(Color.LightGray),
+            .background(Color(0xFFF6F6F6))
+            .padding(top = 60.dp)
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -132,7 +133,7 @@ fun OrderHistoryScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.White)
-                .padding(bottom = 10.dp, top = 8.dp),
+                .padding(vertical = 10.dp),
         ) {
             OrderStatus.entries.forEach { status ->
                 AssistChip(
@@ -154,7 +155,7 @@ fun OrderHistoryScreen(
                 )
             }
         }
-        Divider(color = Color.Gray, thickness = 1.dp)
+        Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
         // ✅ Orders Section
         when {
             isLoading -> {
@@ -176,10 +177,13 @@ fun OrderHistoryScreen(
                 } else {
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color(0xFFF5F5F5))
-                            .padding(16.dp)
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(
+                            start = 20.dp,
+                            end = 20.dp,
+                            top = 16.dp,
+                            bottom = 120.dp
+                        )
                     ) {
                         items(filteredOrders.size) { index ->
                             CardOrder(
@@ -308,7 +312,8 @@ fun CardOrder(
                     modifier = Modifier
                         .width(140.dp)
                         .height(100.dp)
-                        .background(Color.LightGray)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Color(0xFFE0E0E0))
                 )
             }
 

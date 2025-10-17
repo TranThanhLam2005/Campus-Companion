@@ -35,6 +35,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.campuscompanion.Screen
 import com.example.campuscompanion.presentation.feature.clubscreen.ClubScreen
 import com.example.campuscompanion.presentation.feature.clubscreen.ClubScreenDetail
+import com.example.campuscompanion.presentation.feature.eventhistoryscreen.EventHistoryScreen
 import com.example.campuscompanion.presentation.feature.eventscreen.EventDetailScreen
 import com.example.campuscompanion.presentation.feature.homescreen.HomeScreen
 import com.example.campuscompanion.presentation.feature.orderhistoryscreen.OrderDetailScreen
@@ -108,6 +109,9 @@ fun AppNavHost(
             backStackEntry ->
             val orderId = backStackEntry.arguments?.getString("orderId") ?: return@composable
             OrderDetailScreen(navController = navController, orderId = orderId)
+        }
+        composable(Screen.EventHistoryScreen.route){
+            EventHistoryScreen(navController = navController)
         }
     }
 }

@@ -64,9 +64,13 @@ fun EventDetailScreen(
     val viewModel: EventViewModel = hiltViewModel()
     val eventState by viewModel.eventDetail.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val isParticipant by viewModel.isParticipant.collectAsState()
+
+
 
     LaunchedEffect(Unit) {
         viewModel.loadEventDetail(clubId, eventId)
+        viewModel.isParticipantInEvent(eventId)
     }
 
     if(isLoading){
@@ -195,13 +199,22 @@ fun EventDetailScreen(
 
             // Register / Join Button
             Button(
-                onClick = { /* handle registration */ },
+                onClick = {
+                    event?.let {
+                        if(!isParticipant){
+                            viewModel.participateInEvent(it.id, clubId)
+                        }
+                    }
+                },
+                enabled = !isParticipant,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text(stringResource(id = R.string.event_register))
+                if(isParticipant){
+                    Text(stringResource(id = R.string.event_registered))
+                }else Text(stringResource(id = R.string.event_register))
             }
         }
     }
